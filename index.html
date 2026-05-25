@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ভয়েস চ্যাট রুম</title>
+    <title>ভয়েস ও ছবি চ্যাট রুম</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .chat-container { width: 100%; max-width: 400px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 90vh; }
@@ -16,18 +16,20 @@
         .name-tag { font-size: 11px; color: #555; display: block; margin-bottom: 2px; font-weight: bold; }
         .chat-input-area { display: flex; padding: 10px; background: #fff; border-top: 1px solid #ddd; align-items: center; gap: 5px; }
         .chat-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; padding-left: 15px; }
-        .send-btn, .mic-btn { background: #0084ff; color: white; border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 16px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
+        .send-btn, .mic-btn, .image-btn { background: #0084ff; color: white; border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 16px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
         .mic-btn.recording { background: red; animation: pulse 1s infinite; }
         .name-container { padding: 10px; background: #fff; border-bottom: 1px solid #ddd; display: flex; gap: 5px; }
         .name-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 5px; text-align: center; }
         audio { max-width: 100%; margin-top: 5px; display: block; }
+        .chat-img { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 5px; display: block; }
+        #fileInput { display: none; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
 <div class="chat-container">
-    <div class="chat-header">💬 বন্ধুদের লাইভ ও ভয়েস চ্যাট রুম</div>
+    <div class="chat-header">💬 বন্ধুদের লাইভ, ভয়েস ও ছবি চ্যাট রুম</div>
     
     <div class="name-container">
         <input type="text" id="userName" class="name-input" placeholder="আপনার নাম লিখুন..." value="ইব্রাহিম">
@@ -36,6 +38,9 @@
     <div class="chat-messages" id="msgBox"></div>
     
     <div class="chat-input-area">
+        <input type="file" id="fileInput" accept="image/*" onchange="sendImage(this)">
+        <button class="image-btn" onclick="document.getElementById('fileInput').click()">🖼️</button>
+        
         <input type="text" class="chat-input" id="textInput" placeholder="এখানে মেসেজ লিখুন...">
         <button class="send-btn" onclick="sendMsg()">➔</button>
         <button class="mic-btn" id="micBtn" onclick="toggleRecording()">🎤</button>
@@ -46,7 +51,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
-    // আপনার ফায়ারবেস চাবি
     const firebaseConfig = {
         apiKey: "AIzaSyDbpbfLrMUXoFjhUC37l",
         authDomain: "eibrahim-a67a6.firebaseapp.com",
@@ -83,30 +87,44 @@
         }
     }
 
+    // ছবি আপলোড করে পাঠানো
+    function sendImage(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function (e) {
+                const base64Image = e.target.result;
+                var name = document.getElementById('userName').value.trim() || "অপরিচিত";
+                
+                database.ref("messages").push().set({
+                    "sender": name,
+                    "message": base64Image,
+                    "type": "image",
+                    "timestamp": Date.now()
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
     // ভয়েস রেকর্ড শুরু বা বন্ধ করা
     async function toggleRecording() {
         const micBtn = document.getElementById('micBtn');
-        
         if (!isRecording) {
-            // রেকর্ড শুরু করা
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
-
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
 
                 mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
                     const reader = new FileReader();
-                    reader.readAsDataURL(audioBlob); // অডিও ফাইলকে টেক্সটে রূপান্তর
+                    reader.readAsDataURL(audioBlob);
                     reader.onloadend = () => {
                         const base64Audio = reader.result;
                         var name = document.getElementById('userName').value.trim() || "অপরিচিত";
-                        
-                        // ডাটাবেজে ভয়েস সেভ করা
                         database.ref("messages").push().set({
                             "sender": name,
                             "message": base64Audio,
@@ -124,7 +142,6 @@
                 alert("মাইক্রোফোন পারমিশন দিন ভাই!");
             }
         } else {
-            // রেকর্ড বন্ধ করা
             mediaRecorder.stop();
             isRecording = false;
             micBtn.innerText = "🎤";
@@ -132,7 +149,7 @@
         }
     }
 
-    // রিয়েল-টাইমে ডাটাবেজ থেকে মেসেজ ও ভয়েস আনা
+    // রিয়েল-টাইমে ডাটাবেজ থেকে মেসেজ, ভয়েস ও ছবি আনা
     database.ref("messages").on("child_added", function(snapshot) {
         var data = snapshot.val();
         var msgBox = document.getElementById('msgBox');
@@ -146,10 +163,11 @@
         }
 
         if(data.type === "audio") {
-            // যদি ভয়েস মেসেজ হয়
             newMsg.innerHTML = `<span class="name-tag">${data.sender === myName ? 'আপনি' : data.sender} (ভয়েস)</span><audio src="${data.message}" controls></audio>`;
+        } else if(data.type === "image") {
+            // যদি ছবি হয়, তবে স্ক্রিনে ছবি দেখাবে
+            newMsg.innerHTML = `<span class="name-tag">${data.sender === myName ? 'আপনি' : data.sender} (ছবি)</span><img src="${data.message}" class="chat-img" />`;
         } else {
-            // যদি সাধারণ লেখা হয়
             newMsg.innerHTML = `<span class="name-tag">${data.sender === myName ? 'আপনি' : data.sender}</span> ${data.message}`;
         }
 
