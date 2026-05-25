@@ -1,25 +1,41 @@
-
-<!DOCTYPE html>
+            <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ভয়েস ও ছবি চ্যাট রুম</title>
+    <title>ভয়েস, ছবি ও কাস্টম থিম চ্যাট রুম</title>
     <style>
-        body { font-family: Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .chat-container { width: 100%; max-width: 400px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 90vh; }
-        .chat-header { background: #0084ff; color: white; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; }
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; }
-        .msg { padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; max-width: 80%; word-wrap: break-word; display: block; }
-        .msg.received { background: white; align-self: flex-start; text-align: left; }
-        .msg.sent { background: #d9fdd3; align-self: flex-end; text-align: right; margin-left: auto; }
+        /* ডিফল্ট থিম (Light Theme) variables */
+        :root {
+            --bg-color: #f0f2f5;
+            --container-bg: white;
+            --header-bg: #0084ff;
+            --header-text: white;
+            --chat-wall: #e5ddd5;
+            --received-msg: white;
+            --sent-msg: #d9fdd3;
+            --text-color: #000;
+        }
+
+        body { font-family: Arial, sans-serif; background: var(--bg-color); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; transition: 0.3s; }
+        .chat-container { width: 100%; max-width: 400px; background: var(--container-bg); border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 90vh; }
+        .chat-header { background: var(--header-bg); color: var(--header-text); padding: 15px; text-align: center; font-size: 18px; font-weight: bold; position: relative; }
+        
+        /* থিম চেঞ্জ করার ড্রপডাউন মেনু */
+        .theme-select { position: absolute; right: 10px; top: 12px; padding: 5px; border-radius: 5px; border: none; background: white; color: #333; font-size: 12px; cursor: pointer; outline: none; }
+        
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: var(--chat-wall); display: flex; flex-direction: column; }
+        .msg { padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; max-width: 80%; word-wrap: break-word; display: block; color: var(--text-color); }
+        .msg.received { background: var(--received-msg); align-self: flex-start; text-align: left; }
+        .msg.sent { background: var(--sent-msg); align-self: flex-end; text-align: right; margin-left: auto; }
         .name-tag { font-size: 11px; color: #555; display: block; margin-bottom: 2px; font-weight: bold; }
-        .chat-input-area { display: flex; padding: 10px; background: #fff; border-top: 1px solid #ddd; align-items: center; gap: 5px; }
-        .chat-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; padding-left: 15px; }
-        .send-btn, .mic-btn, .image-btn { background: #0084ff; color: white; border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 16px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
+        .chat-input-area { display: flex; padding: 10px; background: var(--container-bg); border-top: 1px solid #ddd; align-items: center; gap: 5px; }
+        .chat-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; padding-left: 15px; background: var(--container-bg); color: var(--text-color); }
+        
+        .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 16px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
         .mic-btn.recording { background: red; animation: pulse 1s infinite; }
-        .name-container { padding: 10px; background: #fff; border-bottom: 1px solid #ddd; display: flex; gap: 5px; }
-        .name-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 5px; text-align: center; }
+        .name-container { padding: 10px; background: var(--container-bg); border-bottom: 1px solid #ddd; display: flex; gap: 5px; }
+        .name-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 5px; text-align: center; background: var(--container-bg); color: var(--text-color); }
         audio { max-width: 100%; margin-top: 5px; display: block; }
         .chat-img { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 5px; display: block; }
         #fileInput { display: none; }
@@ -29,7 +45,15 @@
 <body>
 
 <div class="chat-container">
-    <div class="chat-header">💬 বন্ধুদের লাইভ, ভয়েস ও ছবি চ্যাট রুম</div>
+    <div class="chat-header">
+        <span>💬 মাল্টি-থিম চ্যাট রুম</span>
+        <select class="theme-select" id="themeChooser" onchange="changeTheme(this.value)">
+            <option value="light">☀️ লাইট</option>
+            <option value="dark">🌙 ডার্ক (কালো)</option>
+            <option value="romantic">💖 রোমান্টিক</option>
+            <option value="nature">🌿 সবুজ প্রকৃতি</option>
+        </select>
+    </div>
     
     <div class="name-container">
         <input type="text" id="userName" class="name-input" placeholder="আপনার নাম লিখুন..." value="ইব্রাহিম">
@@ -69,6 +93,45 @@
     let audioChunks = [];
     let isRecording = false;
 
+    // থিম পরিবর্তন করার ফাংশন
+    function changeTheme(themeName) {
+        const root = document.documentElement;
+        if(themeName === 'dark') {
+            root.style.setProperty('--bg-color', '#121212');
+            root.style.setProperty('--container-bg', '#1e1e1e');
+            root.style.setProperty('--header-bg', '#292929');
+            root.style.setProperty('--chat-wall', '#181818');
+            root.style.setProperty('--received-msg', '#333333');
+            root.style.setProperty('--sent-msg', '#005c4b');
+            root.style.setProperty('--text-color', '#ffffff');
+        } else if(themeName === 'romantic') {
+            root.style.setProperty('--bg-color', '#ffe3e8');
+            root.style.setProperty('--container-bg', '#fff0f3');
+            root.style.setProperty('--header-bg', '#ff4d6d');
+            root.style.setProperty('--chat-wall', '#ffccd5');
+            root.style.setProperty('--received-msg', '#fff');
+            root.style.setProperty('--sent-msg', '#ff85a1');
+            root.style.setProperty('--text-color', '#4a0010');
+        } else if(themeName === 'nature') {
+            root.style.setProperty('--bg-color', '#e8f5e9');
+            root.style.setProperty('--container-bg', '#ffffff');
+            root.style.setProperty('--header-bg', '#2e7d32');
+            root.style.setProperty('--chat-wall', '#c8e6c9');
+            root.style.setProperty('--received-msg', '#f1f8e9');
+            root.style.setProperty('--sent-msg', '#a5d6a7');
+            root.style.setProperty('--text-color', '#1b5e20');
+        } else {
+            // লাইট থিম (Default)
+            root.style.setProperty('--bg-color', '#f0f2f5');
+            root.style.setProperty('--container-bg', 'white');
+            root.style.setProperty('--header-bg', '#0084ff');
+            root.style.setProperty('--chat-wall', '#e5ddd5');
+            root.style.setProperty('--received-msg', 'white');
+            root.style.setProperty('--sent-msg', '#d9fdd3');
+            root.style.setProperty('--text-color', '#000000');
+        }
+    }
+
     // লেখা মেসেজ পাঠানো
     function sendMsg() {
         var nameInput = document.getElementById('userName');
@@ -87,28 +150,21 @@
         }
     }
 
-    // ছবি আপলোড করে পাঠানো
+    // ছবি পাঠানো
     function sendImage(input) {
         if (input.files && input.files[0]) {
             const file = input.files[0];
             const reader = new FileReader();
-            
             reader.onload = function (e) {
                 const base64Image = e.target.result;
                 var name = document.getElementById('userName').value.trim() || "অপরিচিত";
-                
-                database.ref("messages").push().set({
-                    "sender": name,
-                    "message": base64Image,
-                    "type": "image",
-                    "timestamp": Date.now()
-                });
+                database.ref("messages").push().set({ "sender": name, "message": base64Image, "type": "image", "timestamp": Date.now() });
             };
             reader.readAsDataURL(file);
         }
     }
 
-    // ভয়েস রেকর্ড শুরু বা বন্ধ করা
+    // ভয়েস রেকর্ড করা
     async function toggleRecording() {
         const micBtn = document.getElementById('micBtn');
         if (!isRecording) {
@@ -117,7 +173,6 @@
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
                 mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-
                 mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
                     const reader = new FileReader();
@@ -125,22 +180,14 @@
                     reader.onloadend = () => {
                         const base64Audio = reader.result;
                         var name = document.getElementById('userName').value.trim() || "অপরিচিত";
-                        database.ref("messages").push().set({
-                            "sender": name,
-                            "message": base64Audio,
-                            "type": "audio",
-                            "timestamp": Date.now()
-                        });
+                        database.ref("messages").push().set({ "sender": name, "message": base64Audio, "type": "audio", "timestamp": Date.now() });
                     };
                 };
-
                 mediaRecorder.start();
                 isRecording = true;
                 micBtn.innerText = "🛑";
                 micBtn.classList.add('recording');
-            } catch (err) {
-                alert("মাইক্রোফোন পারমিশন দিন ভাই!");
-            }
+            } catch (err) { alert("মাইক্রোফোন পারমিশন দিন ভাই!"); }
         } else {
             mediaRecorder.stop();
             isRecording = false;
@@ -149,23 +196,18 @@
         }
     }
 
-    // রিয়েল-টাইমে ডাটাবেজ থেকে মেসেজ, ভয়েস ও ছবি আনা
+    // ডাটাবেজ থেকে রিয়েল-টাইমে ডাটা আনা
     database.ref("messages").on("child_added", function(snapshot) {
         var data = snapshot.val();
         var msgBox = document.getElementById('msgBox');
         var myName = document.getElementById('userName').value.trim();
         var newMsg = document.createElement('div');
         
-        if(data.sender === myName) {
-            newMsg.className = "msg sent";
-        } else {
-            newMsg.className = "msg received";
-        }
+        if(data.sender === myName) { newMsg.className = "msg sent"; } else { newMsg.className = "msg received"; }
 
         if(data.type === "audio") {
             newMsg.innerHTML = `<span class="name-tag">${data.sender === myName ? 'আপনি' : data.sender} (ভয়েস)</span><audio src="${data.message}" controls></audio>`;
         } else if(data.type === "image") {
-            // যদি ছবি হয়, তবে স্ক্রিনে ছবি দেখাবে
             newMsg.innerHTML = `<span class="name-tag">${data.sender === myName ? 'আপনি' : data.sender} (ছবি)</span><img src="${data.message}" class="chat-img" />`;
         } else {
             newMsg.innerHTML = `<span class="name-tag">${data.sender === myName ? 'আপনি' : data.sender}</span> ${data.message}`;
