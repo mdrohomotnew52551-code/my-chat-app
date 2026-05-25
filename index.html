@@ -1,45 +1,102 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>আমার চ্যাট অ্যাপ</title>
+    <title>আমার রিয়েল-টাইম চ্যাট অ্যাপ</title>
     <style>
         body { font-family: Arial, sans-serif; background: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .chat-container { width: 100%; max-width: 400px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 80vh; }
+        .chat-container { width: 100%; max-width: 400px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 90vh; }
         .chat-header { background: #0084ff; color: white; padding: 15px; text-align: center; font-size: 18px; font-weight: bold; }
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: #e5ddd5; }
-        .chat-input-area { display: flex; padding: 10px; background: #fff; border-top: 1px solid #ddd; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: #e5ddd5; display: flex; flex-direction: column; }
+        .msg { padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; max-width: 80%; word-wrap: break-word; display: block; }
+        .msg.received { background: white; align-self: flex-start; text-align: left; }
+        .msg.sent { background: #d9fdd3; align-self: flex-end; text-align: right; margin-left: auto; }
+        .name-tag { font-size: 11px; color: #555; display: block; margin-bottom: 2px; font-weight: bold; }
+        .chat-input-area { display: flex; padding: 10px; background: #fff; border-top: 1px solid #ddd; align-items: center; }
         .chat-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; padding-left: 15px; }
-        .send-btn { background: #0084ff; color: white; border: none; padding: 10px 15px; margin-left: 5px; border-radius: 50%; cursor: pointer; }
+        .send-btn { background: #0084ff; color: white; border: none; padding: 10px 15px; margin-left: 5px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+        .name-container { padding: 10px; background: #fff; border-bottom: 1px solid #ddd; display: flex; gap: 5px; }
+        .name-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 5px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="chat-container">
-    <div class="chat-header">💬 আমার বন্ধুদের চ্যাট রুম</div>
-    <div class="chat-messages" id="msgBox">
-        <p style="background: white; padding: 8px 12px; border-radius: 10px; display: inline-block; max-width: 80%;">স্বাগতম! আপনার চ্যাট অ্যাপটি এখন সম্পূর্ণ লাইভ কাজ করছে! 🎉</p>
+    <div class="chat-header">💬 আমার বন্ধুদের লাইভ চ্যাট রুম</div>
+    
+    <div class="name-container">
+        <input type="text" id="userName" class="name-input" placeholder="আপনার নাম লিখুন..." value="ইব্রাহিম">
     </div>
+
+    <div class="chat-messages" id="msgBox"></div>
+    
     <div class="chat-input-area">
         <input type="text" class="chat-input" id="textInput" placeholder="এখানে মেসেজ লিখুন...">
         <button class="send-btn" onclick="sendMsg()">➔</button>
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 <script>
+    // আপনার স্ক্রিনশট থেকে নেওয়া ফায়ারবেস চাবি (Configuration)
+    const firebaseConfig = {
+        apiKey: "AIzaSyDbpbfLrMUXoFjhUC37l",
+        authDomain: "eibrahim-a67a6.firebaseapp.com",
+        databaseURL: "https://eibrahim-a67a6-default-rtdb.firebaseio.com",
+        projectId: "eibrahim-a67a6",
+        storageBucket: "eibrahim-a67a6.appspot.com",
+        messagingSenderId: "519997364197",
+        appId: "1:519997364197:web:35e7720",
+        measurementId: "G-4FKBB9DMJW"
+    };
+
+    // ফায়ারবেস চালু করা
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // মেসেজ পাঠানো ফাংশন
     function sendMsg() {
-        var input = document.getElementById('textInput');
-        var msgBox = document.getElementById('msgBox');
-        if(input.value.trim() !== "") {
-            var newMsg = document.createElement('p');
-            newMsg.style.cssText = "background: #d9fdd3; padding: 8px 12px; border-radius: 10px; display: block; max-width: 80%; margin-left: auto; text-align: right;";
-            newMsg.innerText = input.value;
-            msgBox.appendChild(newMsg);
-            input.value = "";
-            msgBox.scrollTop = msgBox.scrollHeight;
+        var nameInput = document.getElementById('userName');
+        var textInput = document.getElementById('textInput');
+        
+        var name = nameInput.value.trim() || "অপরিচিত";
+        var message = textInput.value.trim();
+
+        if(message !== "") {
+            // ডাটাবেজে মেসেজ সেভ করা
+            database.ref("messages").push().set({
+                "sender": name,
+                "message": message,
+                "timestamp": Date.now()
+            });
+            textInput.value = ""; // বক্স খালি করা
         }
     }
+
+    // ডাটাবেজ থেকে রিয়েল-টাইমে মেসেজ আনা এবং স্ক্রিনে দেখানো
+    database.ref("messages").on("child_added", function(snapshot) {
+        var data = snapshot.val();
+        var msgBox = document.getElementById('msgBox');
+        var myName = document.getElementById('userName').value.trim();
+
+        var newMsg = document.createElement('div');
+        
+        // নিজের মেসেজ হলে ডানপাশে, বন্ধুর হলে বামপাশে দেখাবে
+        if(data.sender === myName) {
+            newMsg.className = "msg sent";
+            newMsg.innerHTML = `<span class="name-tag">আপনি</span> ${data.message}`;
+        } else {
+            newMsg.className = "msg received";
+            newMsg.innerHTML = `<span class="name-tag">${data.sender}</span> ${data.message}`;
+        }
+
+        msgBox.appendChild(newMsg);
+        msgBox.scrollTop = msgBox.scrollHeight; // অটো নিচে স্ক্রোল হবে
+    });
 </script>
 
 </body>
