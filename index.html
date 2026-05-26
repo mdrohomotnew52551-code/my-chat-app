@@ -1,9 +1,9 @@
-                <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>প্রোফাইল পিকচার ও লগইন সিস্টেমসহ চ্যাট রুম</title>
+    <title>প্রোফাইল পিকচার, লগইন ও ভিডিও রিলস চ্যাট রুম</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -17,7 +17,7 @@
             --received-text: #000;
         }
 
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; transition: 0.3s; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; transition: 0.3s; overflow: hidden; }
         .chat-container { width: 100%; max-width: 420px; background: var(--container-bg); border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.15); overflow: hidden; display: flex; flex-direction: column; height: 92vh; position: relative; }
         
         /* লগইন ও সাইনআপ পেজের সুন্দর ডিজাইন */
@@ -34,36 +34,48 @@
         .avatar-picker span { font-size: 12px; color: #0084ff; text-align: center; padding: 5px; font-weight: bold; }
 
         /* চ্যাট স্ক্রিন স্টাইল */
-        .chat-header { background: var(--header-bg); color: var(--header-text); padding: 15px; text-align: center; font-size: 18px; font-weight: bold; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .theme-select { position: absolute; right: 10px; top: 12px; padding: 6px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); color: #333; font-size: 12px; cursor: pointer; outline: none; font-weight: bold; }
+        .chat-header { background: var(--header-bg); color: var(--header-text); padding: 15px; text-align: center; font-size: 18px; font-weight: bold; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .header-buttons { display: flex; gap: 8px; align-items: center; }
+        .theme-select { padding: 6px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); color: #333; font-size: 12px; cursor: pointer; outline: none; font-weight: bold; }
+        .video-toggle-btn { background: #ff0050; color: white; border: none; padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        
         .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: var(--chat-wall); display: flex; flex-direction: column; gap: 12px; }
+        
+        /* ভিডিও ফিড এরিয়ার আধুনিক ডিজাইন (TikTok Style) */
+        .video-feed-area { display: none; flex: 1; background: #000; position: relative; flex-direction: column; justify-content: center; align-items: center; color: white; }
+        .video-wrapper { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #000; }
+        .video-player { width: 100%; height: 100%; object-fit: contain; }
+        .video-controls { position: absolute; bottom: 20px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: flex-end; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .video-info h4 { margin: 0 0 5px 0; font-size: 16px; color: #fff; }
+        .video-info p { margin: 0; font-size: 13px; color: #ddd; }
+        .video-actions { display: flex; flex-direction: column; gap: 15px; position: absolute; right: 15px; bottom: 80px; align-items: center; }
+        .action-item { display: flex; flex-direction: column; align-items: center; font-size: 12px; cursor: pointer; }
+        .action-icon { width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; margin-bottom: 4px; }
         
         /* আসল প্রোফাইল পিকচারসহ মেসেজ রোর ডিজাইন */
         .message-row { display: flex; align-items: flex-end; gap: 8px; max-width: 85%; }
         .message-row.sent { align-self: flex-end; flex-direction: row-reverse; }
         .message-row.received { align-self: flex-start; }
-
-        /* ব্যবহারকারীর আসল গোল ছবি */
         .user-avatar { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; background: #ccc; }
         
         .msg-content-wrapper { display: flex; flex-direction: column; }
         .message-row.sent .msg-content-wrapper { align-items: flex-end; }
         .message-row.received .msg-content-wrapper { align-items: flex-start; }
-
         .name-tag { font-size: 11px; color: #65676b; margin-bottom: 3px; font-weight: 600; padding: 0 4px; }
-        .msg { padding: 10px 14px; border-radius: 18px; word-wrap: break-word; display: inline-block; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
+        .msg { padding: 10px 14px; border-radius: 18px; word-wrap: break-word; display: inline-block; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .message-row.received .msg { background: var(--received-msg); color: var(--received-text); border-bottom-left-radius: 4px; }
         .message-row.sent .msg { background: var(--sent-msg); color: var(--sent-text); border-bottom-right-radius: 4px; }
         
         audio { max-width: 240px; margin-top: 5px; display: block; }
-        .chat-img { max-width: 100%; max-height: 200px; border-radius: 12px; margin-top: 5px; display: block; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .chat-img { max-width: 100%; max-height: 200px; border-radius: 12px; margin-top: 5px; display: block; }
+        .video-msg { max-width: 240px; border-radius: 12px; margin-top: 5px; display: block; background: #000; }
 
         .chat-input-area { display: flex; padding: 12px; background: var(--container-bg); border-top: 1px solid rgba(0,0,0,0.08); align-items: center; gap: 8px; }
         .chat-input { flex: 1; padding: 12px; border: 1px solid #e4e6eb; border-radius: 22px; outline: none; padding-left: 15px; background: var(--bg-color); color: var(--received-text); font-size: 14px; }
-        .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 16px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
+        .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 16px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
         .mic-btn.recording { background: red; animation: pulse 1s infinite; }
         
-        #fileInput, #avatarInput { display: none; }
+        #fileInput, #avatarInput, #videoInput { display: none; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
     </style>
 </head>
@@ -82,12 +94,10 @@
         
         <div class="auth-box" id="signupBox" style="display: none;">
             <div class="auth-title">👤 নতুন অ্যাকাউন্ট খুলুন</div>
-            
             <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(this)">
             <div class="avatar-picker" onclick="document.getElementById('avatarInput').click()" id="avatarPreviewBox">
                 <span>📸 প্রোফাইল ছবি দিন</span>
             </div>
-            
             <input type="text" id="signupName" class="auth-input" placeholder="আপনার আসল নাম (বাংলা বা ইংরেজি)">
             <input type="text" id="signupUser" class="auth-input" placeholder="ইউজার আইডি (যেমন: ibrahim52)">
             <input type="password" id="signupPass" class="auth-input" placeholder="একটি গোপন পাসওয়ার্ড দিন">
@@ -97,20 +107,50 @@
     </div>
 
     <div class="chat-header">
-        <span id="roomTitle">💬 বন্ধুদের চ্যাট রুম</span>
-        <select class="theme-select" id="themeChooser" onchange="changeTheme(this.value)">
-            <option value="light">☀️ লাইট</option>
-            <option value="dark">🌙 ডার্ক (কালো)</option>
-            <option value="romantic">💖 রোমান্টিক</option>
-            <option value="nature">🌿 সবুজ প্রকৃতি</option>
-        </select>
+        <span id="roomTitle">💬 চ্যাট রুম</span>
+        <div class="header-buttons">
+            <button class="video-toggle-btn" id="viewModeBtn" onclick="toggleViewMode()">🎬 ভিডিও ফিড</button>
+            <select class="theme-select" id="themeChooser" onchange="changeTheme(this.value)">
+                <option value="light">☀️ লাইট</option>
+                <option value="dark">🌙 ডার্ক</option>
+                <option value="romantic">💖 রোমান্টিক</option>
+                <option value="nature">🌿 প্রকৃতি</option>
+            </select>
+        </div>
     </div>
 
     <div class="chat-messages" id="msgBox"></div>
     
+    <div class="video-feed-area" id="videoBox">
+        <div class="video-wrapper">
+            <video class="video-player" id="mainVideoPlayer" src="" loop autoplay muted onclick="this.paused ? this.play() : this.pause()"></video>
+        </div>
+        <div class="video-actions">
+            <div class="action-item" onclick="alert('ভিডিওটি লাইক করা হয়েছে ❤️')">
+                <div class="action-icon">❤️</div>
+                <span>১.২k</span>
+            </div>
+            <div class="action-item" onclick="toggleViewMode()">
+                <div class="action-icon">💬</div>
+                <span>চ্যাট</span>
+            </div>
+        </div>
+        <div class="video-controls">
+            <div class="video-info">
+                <h4 id="vSender">@username</h4>
+                <p id="vCaption">বন্ধুদের শেয়ার করা জোস ভিডিও ক্লিপ 🎬</p>
+            </div>
+            <button class="video-toggle-btn" style="background:#0084ff;" onclick="nextVideo()">➔ পরবর্তী</button>
+        </div>
+    </div>
+    
     <div class="chat-input-area">
         <input type="file" id="fileInput" accept="image/*" onchange="sendImage(this)">
         <button class="image-btn" onclick="document.getElementById('fileInput').click()">🖼️</button>
+        
+        <input type="file" id="videoInput" accept="video/*" onchange="sendVideo(this)">
+        <button class="image-btn" style="background:#ff0050" onclick="document.getElementById('videoInput').click()">📹</button>
+        
         <input type="text" class="chat-input" id="textInput" placeholder="এখানে মেসেজ লিখুন...">
         <button class="send-btn" onclick="sendMsg()">➔</button>
         <button class="mic-btn" id="micBtn" onclick="toggleRecording()">🎤</button>
@@ -139,15 +179,17 @@
     let mediaRecorder;
     let audioChunks = [];
     let isRecording = false;
-    let selectedAvatarBase64 = ""; // ডিফল্ট ব্ল্যাঙ্ক ছবি রাখার জন্য
+    let selectedAvatarBase64 = "";
+    
+    let globalVideos = []; // সব ভিডিওর লিস্ট রাখার জন্য
+    let currentVideoIndex = 0;
+    let isVideoMode = false;
 
-    // লগইন এবং সাইনআপ স্ক্রিন অদলবদল করা
     function toggleAuth(showLogin) {
         document.getElementById('loginBox').style.display = showLogin ? 'block' : 'none';
         document.getElementById('signupBox').style.display = showLogin ? 'none' : 'block';
     }
 
-    // গ্যালারি থেকে নেওয়া ছবির প্রিভিউ দেখানো
     function previewAvatar(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -159,36 +201,28 @@
         }
     }
 
-    // নতুন অ্যাকাউন্ট খোলার ফাংশন (Sign Up)
     function signup() {
         const name = document.getElementById('signupName').value.trim();
         const username = document.getElementById('signupUser').value.trim().toLowerCase();
         const pass = document.getElementById('signupPass').value.trim();
 
-        if(!name || !username || !pass) { alert("সবগুলো বক্স দয়া করে পূরণ করুন ভাই!"); return; }
-        if(!selectedAvatarBase64) { alert("দয়া করে গ্যালারি থেকে আপনার একটি গোল প্রোফাইল ছবি সিলেক্ট করুন!"); return; }
+        if(!name || !username || !pass) { alert("সবগুলো বক্স পূরণ করুন ভাই!"); return; }
+        if(!selectedAvatarBase64) { alert("গ্যালারি থেকে আপনার একটি প্রোফাইল ছবি সিলেক্ট করুন!"); return; }
 
-        // ডাটাবেজে এই আইডি আগে থেকে আছে কি না চেক করা
         database.ref("users").child(username).once("value", function(snapshot) {
             if(snapshot.exists()) {
-                alert("এই ইউজার আইডিটি অন্য কেউ নিয়ে নিয়েছে ভাই! অন্য একটা আইডি দিন।");
+                alert("এই ইউজার আইডিটি অন্য কেউ নিয়ে নিয়েছে ভাই!");
             } else {
-                // নতুন ইউজার ডাটা সেভ করা
                 database.ref("users").child(username).set({
-                    "name": name,
-                    "password": pass,
-                    "avatar": selectedAvatarBase64
+                    "name": name, "password": pass, "avatar": selectedAvatarBase64
                 }, function(error) {
-                    if(!error) {
-                        alert("অভিনন্দন ভাই! আপনার অ্যাকাউন্ট তৈরি সফল হয়েছে। এবার লগইন করুন।");
-                        toggleAuth(true);
-                    }
+                    if(!error) { alert("অ্যাকাউন্ট তৈরি সফল হয়েছে! এবার লগইন করুন।"); toggleAuth(true); }
                 });
             }
         });
     }
 
-    // লগইন করার ফাংশন (Log In)
+    // লগইন কোডের বাগটি এখানে সফলভাবে ফিক্স করা হয়েছে
     function login() {
         const username = document.getElementById('loginUser').value.trim().toLowerCase();
         const pass = document.getElementById('loginPass').value.trim();
@@ -199,70 +233,104 @@
             if(snapshot.exists()) {
                 const userData = snapshot.val();
                 if(userData.password === pass) {
-                    currentUser = {
-                        "username": username,
-                        "name": userData.name,
-                        "avatar": userData.avatar
-                    };
-                    document.getElementById('authScreen').style.style.display = 'none'; // চ্যাট স্ক্রিন অন হবে
-                    document.getElementById('authScreen').remove(); // লগইন স্ক্রিন সরিয়ে ফেলা হলো
-                    document.getElementById('roomTitle').innerText = `💬 ${currentUser.name} এর চ্যাট রুম`;
-                } else { alert("দুঃখিত ভাই, পাসওয়ার্ডটি ভুল হয়েছে!"); }
+                    currentUser = { "username": username, "name": userData.name, "avatar": userData.avatar };
+                    document.getElementById('authScreen').style.display = 'none'; // ফিক্সড: লগইন স্ক্রিন সুন্দরভাবে হাইড হবে
+                    document.getElementById('roomTitle').innerText = `💬 ${currentUser.name}`;
+                } else { alert("পাসওয়ার্ডটি ভুল হয়েছে ভাই!"); }
             } else { alert("এই ইউজার আইডি দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি!"); }
         });
     }
 
-    // থিম চেঞ্জার ফাংশন
+    // চ্যাট মোড এবং টিকটক ভিডিও মোড অদলবদল করার লজিক
+    function toggleViewMode() {
+        const msgBox = document.getElementById('msgBox');
+        const videoBox = document.getElementById('videoBox');
+        const viewModeBtn = document.getElementById('viewModeBtn');
+        const mainVideoPlayer = document.getElementById('mainVideoPlayer');
+
+        if(!isVideoMode) {
+            if(globalVideos.length === 0) { alert("চ্যাটে এখনো কোনো ভিডিও আপলোড করা হয়নি ভাই! আগে একটা ভিডিও পাঠান।"); return; }
+            msgBox.style.display = 'none';
+            videoBox.style.display = 'flex';
+            viewModeBtn.innerText = "💬 চ্যাট রুম";
+            viewModeBtn.style.background = "#0084ff";
+            isVideoMode = true;
+            playVideoIndex(0);
+        } else {
+            msgBox.style.display = 'flex';
+            videoBox.style.display = 'none';
+            viewModeBtn.innerText = "🎬 ভিডিও ফিড";
+            viewModeBtn.style.background = "#ff0050";
+            mainVideoPlayer.pause();
+            isVideoMode = false;
+        }
+    }
+
+    // পরবর্তী ভিডিও প্লে করার ফাংশন
+    function nextVideo() {
+        if(globalVideos.length > 0) {
+            currentVideoIndex = (currentVideoIndex + 1) % globalVideos.length;
+            playVideoIndex(currentVideoIndex);
+        }
+    }
+
+    function playVideoIndex(index) {
+        if(globalVideos[index]) {
+            const player = document.getElementById('mainVideoPlayer');
+            player.src = globalVideos[index].url;
+            document.getElementById('vSender').innerText = "@" + globalVideos[index].sender;
+            player.play().catch(e => console.log("Auto play caught"));
+        }
+    }
+
     function changeTheme(themeName) {
         const root = document.documentElement;
         if(themeName === 'dark') {
             root.style.setProperty('--bg-color', '#121212'); root.style.setProperty('--container-bg', '#1e1e1e'); root.style.setProperty('--header-bg', '#292929'); root.style.setProperty('--chat-wall', '#181818'); root.style.setProperty('--received-msg', '#333333'); root.style.setProperty('--sent-msg', '#005c4b'); root.style.setProperty('--sent-text', '#fff'); root.style.setProperty('--received-text', '#ffffff');
-        } else if(themeName === 'romantic') {
-            root.style.setProperty('--bg-color', '#ffe3e8'); root.style.setProperty('--container-bg', '#fff0f3'); root.style.setProperty('--header-bg', '#ff4d6d'); root.style.setProperty('--chat-wall', '#ffccd5'); root.style.setProperty('--received-msg', '#fff'); root.style.setProperty('--sent-msg', '#ff85a1'); root.style.setProperty('--sent-text', '#fff'); root.style.setProperty('--received-text', '#4a0010');
-        } else if(themeName === 'nature') {
-            root.style.setProperty('--bg-color', '#e8f5e9'); root.style.setProperty('--container-bg', '#ffffff'); root.style.setProperty('--header-bg', '#2e7d32'); root.style.setProperty('--chat-wall', '#c8e6c9'); root.style.setProperty('--received-msg', '#f1f8e9'); root.style.setProperty('--sent-msg', '#a5d6a7'); root.style.setProperty('--sent-text', '#1b5e20'); root.style.setProperty('--received-text', '#1b5e20');
         } else {
             root.style.setProperty('--bg-color', '#f0f2f5'); root.style.setProperty('--container-bg', 'white'); root.style.setProperty('--header-bg', '#0084ff'); root.style.setProperty('--chat-wall', '#e5ddd5'); root.style.setProperty('--received-msg', 'white'); root.style.setProperty('--sent-msg', '#0084ff'); root.style.setProperty('--sent-text', '#fff'); root.style.setProperty('--received-text', '#000000');
         }
     }
 
-    // মেসেজ পাঠানো
     function sendMsg() {
         var textInput = document.getElementById('textInput');
         var message = textInput.value.trim();
-
         if(message !== "" && currentUser) {
             database.ref("messages").push().set({
-                "senderId": currentUser.username,
-                "senderName": currentUser.name,
-                "avatar": currentUser.avatar,
-                "message": message,
-                "type": "text",
-                "timestamp": Date.now()
+                "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": message, "type": "text", "timestamp": Date.now()
             });
             textInput.value = "";
         }
     }
 
-    // ছবি পাঠানো
     function sendImage(input) {
         if (input.files && input.files[0] && currentUser) {
             const reader = new FileReader();
             reader.onload = function (e) {
                 database.ref("messages").push().set({
-                    "senderId": currentUser.username,
-                    "senderName": currentUser.name,
-                    "avatar": currentUser.avatar,
-                    "message": e.target.result,
-                    "type": "image",
-                    "timestamp": Date.now()
+                    "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": e.target.result, "type": "image", "timestamp": Date.now()
                 });
             };
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    // ভয়েস রেকর্ড করা
+    // গ্যালারি থেকে বন্ধুদের ভিডিও পাঠানোর নতুন ফাংশন (সম্পূর্ণ ফ্রি ট্রিক)
+    function sendVideo(input) {
+        if (input.files && input.files[0] && currentUser) {
+            const file = input.files[0];
+            if(file.size > 25 * 1024 * 1024) { alert("ভিডিওর সাইজ অনেক বড় ভাই! ২৫ এমবির নিচের ছোট ভিডিও দিন।"); return; }
+            
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                database.ref("messages").push().set({
+                    "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": e.target.result, "type": "video", "timestamp": Date.now()
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
     async function toggleRecording() {
         const micBtn = document.getElementById('micBtn');
         if (!isRecording) {
@@ -278,55 +346,34 @@
                     reader.onloadend = () => {
                         if(currentUser) {
                             database.ref("messages").push().set({
-                                "senderId": currentUser.username,
-                                "senderName": currentUser.name,
-                                "avatar": currentUser.avatar,
-                                "message": reader.result,
-                                "type": "audio",
-                                "timestamp": Date.now()
+                                "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": reader.result, "type": "audio", "timestamp": Date.now()
                             });
                         }
                     };
                 };
                 mediaRecorder.start();
-                isRecording = true;
-                micBtn.innerText = "🛑";
-                micBtn.classList.add('recording');
+                isRecording = true; micBtn.innerText = "🛑"; micBtn.classList.add('recording');
             } catch (err) { alert("মাইক্রোফোন পারমিশন দিন ভাই!"); }
         } else {
-            mediaRecorder.stop();
-            isRecording = false;
-            micBtn.innerText = "🎤";
-            micBtn.classList.remove('recording');
+            mediaRecorder.stop(); isRecording = false; micBtn.innerText = "🎤"; micBtn.classList.remove('recording');
         }
     }
 
-    // ডিলিট ফাংশন
     function deleteMessage(msgId) {
-        if (confirm("আপনি কি এই মেসেজটি সবার জন্য ডিলিট করতে চান?")) {
-            database.ref("messages").child(msgId).remove();
-        }
+        if (confirm("আপনি কি এই মেসেজটি সবার জন্য ডিলিট করতে চান?")) { database.ref("messages").child(msgId).remove(); }
     }
 
     const msgBox = document.getElementById('msgBox');
 
-    // ডাটাবেজ থেকে লাইভ মেসেজ এবং আসল প্রোফাইল পিকচার দেখানো
     database.ref("messages").on("child_added", function(snapshot) {
         var data = snapshot.val();
         var key = snapshot.key;
-        
-        if(!currentUser) return; // লগইন না থাকলে মেসেজ রেন্ডার হবে না
+        if(!currentUser) return;
         
         var msgRow = document.createElement('div');
         msgRow.id = "msg-" + key;
-        
-        if(data.senderId === currentUser.username) { 
-            msgRow.className = "message-row sent"; 
-        } else { 
-            msgRow.className = "message-row received"; 
-        }
+        msgRow.className = (data.senderId === currentUser.username) ? "message-row sent" : "message-row received";
 
-        // ইউজারের আসল গোল প্রোফাইল ছবি সেট করা হচ্ছে
         var avatarHtml = `<img src="${data.avatar}" class="user-avatar" />`;
 
         let contentHtml = "";
@@ -334,6 +381,10 @@
             contentHtml = `<audio src="${data.message}" controls></audio>`;
         } else if(data.type === "image") {
             contentHtml = `<img src="${data.message}" class="chat-img" />`;
+        } else if(data.type === "video") {
+            // ভিডিও মেসেজ হলে চ্যাটেও প্লে করা যাবে, আবার লিস্টেও সেভ হবে
+            contentHtml = `<video src="${data.message}" class="video-msg" controls></video>`;
+            globalVideos.push({ "id": key, "url": data.message, "sender": data.senderName });
         } else {
             contentHtml = `${data.message}`;
         }
@@ -346,11 +397,8 @@
             </div>
         `;
 
-        // লং প্রেস ডিলিট সিস্টেম
         if(data.senderId === currentUser.username) {
-            let pressTimer;
-            const msgBubble = msgRow.querySelector('.msg');
-            
+            let pressTimer; const msgBubble = msgRow.querySelector('.msg');
             msgBubble.addEventListener('touchstart', function() { pressTimer = setTimeout(function() { deleteMessage(key); }, 1000); });
             msgBubble.addEventListener('touchend', function() { clearTimeout(pressTimer); });
             msgBubble.addEventListener('mousedown', function() { pressTimer = setTimeout(function() { deleteMessage(key); }, 1000); });
@@ -365,6 +413,7 @@
         var key = snapshot.key;
         var deletedElement = document.getElementById("msg-" + key);
         if (deletedElement) { deletedElement.remove(); }
+        globalVideos = globalVideos.filter(v => v.id !== key);
     });
 </script>
 
