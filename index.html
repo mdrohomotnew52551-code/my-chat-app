@@ -222,7 +222,6 @@
         });
     }
 
-    // ফিক্সড লগইন ফাংশন (যা এতক্ষণ আটকে ছিল)
     function login() {
         const username = document.getElementById('loginUser').value.trim().toLowerCase();
         const pass = document.getElementById('loginPass').value.trim();
@@ -234,7 +233,7 @@
                 const userData = snapshot.val();
                 if(userData.password === pass) {
                     currentUser = { "username": username, "name": userData.name, "avatar": userData.avatar };
-                    document.getElementById('authScreen').style.display = 'none'; // এখানে বাগ ফিক্স করা হয়েছে
+                    document.getElementById('authScreen').style.display = 'none'; 
                     document.getElementById('roomTitle').innerText = `💬 ${currentUser.name}`;
                 } else { alert("পাসওয়ার্ডটি ভুল হয়েছে ভাই!"); }
             } else { alert("এই ইউজার আইডি দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি!"); }
