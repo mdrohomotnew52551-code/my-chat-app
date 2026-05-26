@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+                <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ভয়েস, ছবি, থিম ও ডিলিট অপশনসহ চ্যাট রুম</title>
+    <title>গ্রুপ প্রোফাইল ও মাল্টি-থিম চ্যাট রুম</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -12,39 +12,57 @@
             --header-text: white;
             --chat-wall: #e5ddd5;
             --received-msg: white;
-            --sent-msg: #d9fdd3;
-            --text-color: #000;
+            --sent-msg: #0084ff;
+            --sent-text: white;
+            --received-text: #000;
         }
 
-        body { font-family: Arial, sans-serif; background: var(--bg-color); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; transition: 0.3s; }
-        .chat-container { width: 100%; max-width: 400px; background: var(--container-bg); border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 90vh; }
-        .chat-header { background: var(--header-bg); color: var(--header-text); padding: 15px; text-align: center; font-size: 18px; font-weight: bold; position: relative; }
-        .theme-select { position: absolute; right: 10px; top: 12px; padding: 5px; border-radius: 5px; border: none; background: white; color: #333; font-size: 12px; cursor: pointer; outline: none; }
-        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: var(--chat-wall); display: flex; flex-direction: column; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; transition: 0.3s; }
+        .chat-container { width: 100%; max-width: 420px; background: var(--container-bg); border-radius: 15px; box-shadow: 0 5px 25px rgba(0,0,0,0.15); overflow: hidden; display: flex; flex-direction: column; height: 92vh; }
+        .chat-header { background: var(--header-bg); color: var(--header-text); padding: 15px; text-align: center; font-size: 18px; font-weight: bold; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .theme-select { position: absolute; right: 10px; top: 12px; padding: 6px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); color: #333; font-size: 12px; cursor: pointer; outline: none; font-weight: bold; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: var(--chat-wall); display: flex; flex-direction: column; gap: 12px; }
         
-        /* মেসেজ স্টাইল ও চেপে ধরার ইফেক্ট */
-        .msg { padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; max-width: 80%; word-wrap: break-word; display: block; color: var(--text-color); position: relative; user-select: none; -webkit-user-select: none; cursor: pointer; }
-        .msg.received { background: var(--received-msg); align-self: flex-start; text-align: left; }
-        .msg.sent { background: var(--sent-msg); align-self: flex-end; text-align: right; margin-left: auto; }
+        /* প্রোফাইল পিকচারসহ মেসেজ রোর মূল ডিজাইন */
+        .message-row { display: flex; align-items: flex-end; gap: 8px; max-width: 85%; }
+        .message-row.sent { align-self: flex-end; flex-direction: row-reverse; }
+        .message-row.received { align-self: flex-start; }
+
+        /* গোল প্রোফাইল পিকচার (Avatar) */
+        .avatar { width: 35px; height: 35px; border-radius: 50%; background: #ccc; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; font-size: 14px; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; }
         
-        .name-tag { font-size: 11px; color: #555; display: block; margin-bottom: 2px; font-weight: bold; }
-        .chat-input-area { display: flex; padding: 10px; background: var(--container-bg); border-top: 1px solid #ddd; align-items: center; gap: 5px; }
-        .chat-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; padding-left: 15px; background: var(--container-bg); color: var(--text-color); }
-        .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 16px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
+        .msg-content-wrapper { display: flex; flex-direction: column; }
+        .message-row.sent .msg-content-wrapper { align-items: flex-end; }
+        .message-row.received .msg-content-wrapper { align-items: flex-start; }
+
+        .name-tag { font-size: 11px; color: #65676b; margin-bottom: 3px; font-weight: 600; padding: 0 4px; }
+        
+        /* মেসেজ বাবল ডিজাইন */
+        .msg { padding: 10px 14px; border-radius: 18px; word-wrap: break-word; display: inline-block; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
+        .message-row.received .msg { background: var(--received-msg); color: var(--received-text); border-bottom-left-radius: 4px; }
+        .message-row.sent .msg { background: var(--sent-msg); color: var(--sent-text); border-bottom-right-radius: 4px; }
+        
+        /* অডিও ও ছবি ঠিক করার স্টাইল */
+        audio { max-width: 240px; margin-top: 5px; display: block; }
+        .chat-img { max-width: 100%; max-height: 200px; border-radius: 12px; margin-top: 5px; display: block; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        .chat-input-area { display: flex; padding: 12px; background: var(--container-bg); border-top: 1px solid rgba(0,0,0,0.08); align-items: center; gap: 8px; }
+        .chat-input { flex: 1; padding: 12px; border: 1px solid #e4e6eb; border-radius: 22px; outline: none; padding-left: 15px; background: var(--bg-color); color: var(--received-text); font-size: 14px; }
+        .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 10px; border-radius: 50%; cursor: pointer; font-size: 16px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
+        .send-btn:hover, .mic-btn:hover, .image-btn:hover { transform: scale(1.05); }
         .mic-btn.recording { background: red; animation: pulse 1s infinite; }
-        .name-container { padding: 10px; background: var(--container-bg); border-bottom: 1px solid #ddd; display: flex; gap: 5px; }
-        .name-input { flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 5px; text-align: center; background: var(--container-bg); color: var(--text-color); }
-        audio { max-width: 100%; margin-top: 5px; display: block; }
-        .chat-img { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 5px; display: block; }
+        
+        .name-container { padding: 10px; background: var(--container-bg); border-bottom: 1px solid rgba(0,0,0,0.08); display: flex; gap: 5px; }
+        .name-input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 8px; text-align: center; background: var(--bg-color); color: var(--received-text); font-weight: bold; }
         #fileInput { display: none; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
 
 <div class="chat-container">
     <div class="chat-header">
-        <span>💬 মাল্টি-থিম চ্যাট রুম</span>
+        <span>💬 বন্ধুদের ভিআইপি চ্যাট রুম</span>
         <select class="theme-select" id="themeChooser" onchange="changeTheme(this.value)">
             <option value="light">☀️ লাইট</option>
             <option value="dark">🌙 ডার্ক (কালো)</option>
@@ -90,21 +108,30 @@
     let audioChunks = [];
     let isRecording = false;
 
-    // থিম পরিবর্তন করার ফাংশন
+    // নাম অনুযায়ী আলাদা আলাদা কালার জেনারেট করার ফাংশন
+    function getAvatarColor(name) {
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const colors = ['#FF5722', '#E91E63', '#9C27B0', '#3F51B5', '#00BCD4', '#4CAF50', '#FF9800', '#795548', '#607D8B'];
+        return colors[Math.abs(hash) % colors.length];
+    }
+
+    // থিম চেঞ্জার ফাংশন
     function changeTheme(themeName) {
         const root = document.documentElement;
         if(themeName === 'dark') {
-            root.style.setProperty('--bg-color', '#121212'); root.style.setProperty('--container-bg', '#1e1e1e'); root.style.setProperty('--header-bg', '#292929'); root.style.setProperty('--chat-wall', '#181818'); root.style.setProperty('--received-msg', '#333333'); root.style.setProperty('--sent-msg', '#005c4b'); root.style.setProperty('--text-color', '#ffffff');
+            root.style.setProperty('--bg-color', '#121212'); root.style.setProperty('--container-bg', '#1e1e1e'); root.style.setProperty('--header-bg', '#292929'); root.style.setProperty('--chat-wall', '#181818'); root.style.setProperty('--received-msg', '#333333'); root.style.setProperty('--sent-msg', '#005c4b'); root.style.setProperty('--sent-text', '#fff'); root.style.setProperty('--received-text', '#ffffff');
         } else if(themeName === 'romantic') {
-            root.style.setProperty('--bg-color', '#ffe3e8'); root.style.setProperty('--container-bg', '#fff0f3'); root.style.setProperty('--header-bg', '#ff4d6d'); root.style.setProperty('--chat-wall', '#ffccd5'); root.style.setProperty('--received-msg', '#fff'); root.style.setProperty('--sent-msg', '#ff85a1'); root.style.setProperty('--text-color', '#4a0010');
+            root.style.setProperty('--bg-color', '#ffe3e8'); root.style.setProperty('--container-bg', '#fff0f3'); root.style.setProperty('--header-bg', '#ff4d6d'); root.style.setProperty('--chat-wall', '#ffccd5'); root.style.setProperty('--received-msg', '#fff'); root.style.setProperty('--sent-msg', '#ff85a1'); root.style.setProperty('--sent-text', '#fff'); root.style.setProperty('--received-text', '#4a0010');
         } else if(themeName === 'nature') {
-            root.style.setProperty('--bg-color', '#e8f5e9'); root.style.setProperty('--container-bg', '#ffffff'); root.style.setProperty('--header-bg', '#2e7d32'); root.style.setProperty('--chat-wall', '#c8e6c9'); root.style.setProperty('--received-msg', '#f1f8e9'); root.style.setProperty('--sent-msg', '#a5d6a7'); root.style.setProperty('--text-color', '#1b5e20');
+            root.style.setProperty('--bg-color', '#e8f5e9'); root.style.setProperty('--container-bg', '#ffffff'); root.style.setProperty('--header-bg', '#2e7d32'); root.style.setProperty('--chat-wall', '#c8e6c9'); root.style.setProperty('--received-msg', '#f1f8e9'); root.style.setProperty('--sent-msg', '#a5d6a7'); root.style.setProperty('--sent-text', '#1b5e20'); root.style.setProperty('--received-text', '#1b5e20');
         } else {
-            root.style.setProperty('--bg-color', '#f0f2f5'); root.style.setProperty('--container-bg', 'white'); root.style.setProperty('--header-bg', '#0084ff'); root.style.setProperty('--chat-wall', '#e5ddd5'); root.style.setProperty('--received-msg', 'white'); root.style.setProperty('--sent-msg', '#d9fdd3'); root.style.setProperty('--text-color', '#000000');
+            root.style.setProperty('--bg-color', '#f0f2f5'); root.style.setProperty('--container-bg', 'white'); root.style.setProperty('--header-bg', '#0084ff'); root.style.setProperty('--chat-wall', '#e5ddd5'); root.style.setProperty('--received-msg', 'white'); root.style.setProperty('--sent-msg', '#0084ff'); root.style.setProperty('--sent-text', '#fff'); root.style.setProperty('--received-text', '#000000');
         }
     }
 
-    // লেখা মেসেজ পাঠানো
     function sendMsg() {
         var nameInput = document.getElementById('userName');
         var textInput = document.getElementById('textInput');
@@ -112,17 +139,11 @@
         var message = textInput.value.trim();
 
         if(message !== "") {
-            database.ref("messages").push().set({
-                "sender": name,
-                "message": message,
-                "type": "text",
-                "timestamp": Date.now()
-            });
+            database.ref("messages").push().set({ "sender": name, "message": message, "type": "text", "timestamp": Date.now() });
             textInput.value = "";
         }
     }
 
-    // ছবি পাঠানো
     function sendImage(input) {
         if (input.files && input.files[0]) {
             const file = input.files[0];
@@ -136,7 +157,6 @@
         }
     }
 
-    // ভয়েস রেকর্ড করা
     async function toggleRecording() {
         const micBtn = document.getElementById('micBtn');
         if (!isRecording) {
@@ -168,73 +188,67 @@
         }
     }
 
-    // মেসেজ ডিলিট করার মূল ফাংশন (Database থেকে মুছে ফেলা)
     function deleteMessage(msgId) {
         if (confirm("আপনি কি এই মেসেজটি সবার জন্য ডিলিট করতে চান?")) {
             database.ref("messages").child(msgId).remove();
         }
     }
 
-    // রিয়েল-টাইমে ডাটাবেজ হ্যান্ডেল করা (নতুন মেসেজ আসা এবং ডিলিট হওয়া লাইভ ট্র্যাকিং)
     const msgBox = document.getElementById('msgBox');
 
     database.ref("messages").on("child_added", function(snapshot) {
         var data = snapshot.val();
-        var key = snapshot.key; // মেসেজের ইউনিক আইডি
+        var key = snapshot.key;
         var myName = document.getElementById('userName').value.trim();
-        var newMsg = document.createElement('div');
         
-        newMsg.id = "msg-" + key;
-        if(data.sender === myName) { newMsg.className = "msg sent"; } else { newMsg.className = "msg received"; }
+        var msgRow = document.createElement('div');
+        msgRow.id = "msg-" + key;
+        
+        if(data.sender === myName) { 
+            msgRow.className = "message-row sent"; 
+        } else { 
+            msgRow.className = "message-row received"; 
+        }
 
-        // মেসেজের ভেতরে কনটেন্ট বসানো
+        var firstLetter = data.sender.charAt(0);
+        var avatarBgColor = getAvatarColor(data.sender);
+        var avatarHtml = `<div class="avatar" style="background-color: ${avatarBgColor}">${firstLetter}</div>`;
+
         let contentHtml = "";
         if(data.type === "audio") {
-            contentHtml = `<span class="name-tag">${data.sender === myName ? 'আপনি' : data.sender} (ভয়েস)</span><audio src="${data.message}" controls></audio>`;
+            contentHtml = `<audio src="${data.message}" controls></audio>`;
         } else if(data.type === "image") {
-            contentHtml = `<span class="name-tag">${data.sender === myName ? 'আপনি' : data.sender} (ছবি)</span><img src="${data.message}" class="chat-img" />`;
+            contentHtml = `<img src="${data.message}" class="chat-img" />`;
         } else {
-            contentHtml = `<span class="name-tag">${data.sender === myName ? 'আপনি' : data.sender}</span> ${data.message}`;
+            contentHtml = `${data.message}`;
         }
-        
-        newMsg.innerHTML = contentHtml;
 
-        // শুধু নিজের পাঠানো মেসেজ চেপে ধরে ডিলিট করার ইভেন্ট (Long Press / Hold Event)
+        msgRow.innerHTML = `
+            ${avatarHtml}
+            <div class="msg-content-wrapper">
+                <span class="name-tag">${data.sender === myName ? 'আপনি' : data.sender}</span>
+                <div class="msg">${contentHtml}</div>
+            </div>
+        `;
+
         if(data.sender === myName) {
             let pressTimer;
+            const msgBubble = msgRow.querySelector('.msg');
             
-            // মোবাইলের জন্য টাচ ইভেন্ট
-            newMsg.addEventListener('touchstart', function() {
-                pressTimer = setTimeout(function() {
-                    deleteMessage(key);
-                }, 1000); // ১ সেকেন্ড চেপে ধরে রাখলে ডিলিট অপশন আসবে
-            });
-            newMsg.addEventListener('touchend', function() {
-                clearTimeout(pressTimer);
-            });
-            
-            // কম্পিউটারের জন্য মাউস ইভেন্ট
-            newMsg.addEventListener('mousedown', function() {
-                pressTimer = setTimeout(function() {
-                    deleteMessage(key);
-                }, 1000);
-            });
-            newMsg.addEventListener('mouseup', function() {
-                clearTimeout(pressTimer);
-            });
+            msgBubble.addEventListener('touchstart', function() { pressTimer = setTimeout(function() { deleteMessage(key); }, 1000); });
+            msgBubble.addEventListener('touchend', function() { clearTimeout(pressTimer); });
+            msgBubble.addEventListener('mousedown', function() { pressTimer = setTimeout(function() { deleteMessage(key); }, 1000); });
+            msgBubble.addEventListener('mouseup', function() { clearTimeout(pressTimer); });
         }
 
-        msgBox.appendChild(newMsg);
+        msgBox.appendChild(msgRow);
         msgBox.scrollTop = msgBox.scrollHeight;
     });
 
-    // কেউ মেসেজ ডিলিট করলে লাইভ স্ক্রিন থেকেও ডিলিট হয়ে যাওয়া
     database.ref("messages").on("child_removed", function(snapshot) {
         var key = snapshot.key;
         var deletedElement = document.getElementById("msg-" + key);
-        if (deletedElement) {
-            deletedElement.remove();
-        }
+        if (deletedElement) { deletedElement.remove(); }
     });
 </script>
 
