@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>প্রফেশনাল রিয়েল-টাইম চ্যাট রুম</title>
+    <title>ইনস্ট্যান্ট লোডিং চ্যাট রুম</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -61,9 +61,8 @@
         .video-toggle-btn { background: #ff0050; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
         .logout-btn { background: #ff3b30; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
         
-        /* লোড মোর বাটন স্টাইল */
-        .load-more-btn { background: rgba(0,0,0,0.05); border: none; padding: 6px 12px; border-radius: 15px; font-size: 12px; color: #555; cursor: pointer; margin: 5px auto; display: block; font-weight: bold; }
-        .load-more-btn:hover { background: rgba(0,0,0,0.1); }
+        .load-more-container { width: 100%; text-align: center; padding: 6px 0; background: transparent; flex-shrink: 0; border-bottom: 1px solid rgba(0,0,0,0.03); }
+        .load-more-btn { background: rgba(0,0,0,0.06); border: none; padding: 6px 14px; border-radius: 15px; font-size: 12px; color: #444; cursor: pointer; font-weight: bold; display: inline-block; }
 
         .chat-messages { 
             flex: 1; 
@@ -72,7 +71,7 @@
             background: var(--chat-wall); 
             display: flex; 
             flex-direction: column; 
-            gap: 10px; 
+            gap: 12px; 
             box-sizing: border-box;
         }
         
@@ -83,22 +82,20 @@
         .video-info h4 { margin: 0 0 3px 0; font-size: 14px; color: #fff; }
         .video-info p { margin: 0; font-size: 11px; color: #ddd; }
         
-        /* অনলাইন ডট স্টাইল */
         .avatar-container { position: relative; display: inline-block; flex-shrink: 0; }
         .online-dot { width: 10px; height: 10px; background-color: #4cd964; border: 2px solid var(--chat-wall); border-radius: 50%; position: absolute; bottom: 0; right: 0; z-index: 2; display: none; }
         .avatar-container.online .online-dot { display: block; }
 
-        .message-row { display: flex; align-items: flex-end; gap: 6px; max-width: 85%; position: relative; }
+        .message-row { display: flex; align-items: flex-end; gap: 8px; max-width: 85%; position: relative; }
         .message-row.sent { align-self: flex-end; flex-direction: row-reverse; }
         .message-row.received { align-self: start; }
-        .user-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; display: block; background: #ccc; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; display: block; background: #ccc; }
         
         .msg-content-wrapper { display: flex; flex-direction: column; max-width: 100%; }
         .message-row.sent .msg-content-wrapper { align-items: flex-end; }
         .message-row.received .msg-content-wrapper { align-items: flex-start; }
         .name-tag { font-size: 11px; color: #65676b; margin-bottom: 2px; font-weight: 600; padding: 0 2px; }
         
-        /* টাইম স্ট্যাম্প স্টাইল */
         .time-stamp { font-size: 9px; color: #8a8d91; margin-top: 2px; padding: 0 4px; }
 
         .msg { padding: 10px 14px; border-radius: 18px; word-wrap: break-word; display: inline-block; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); line-height: 1.4; max-width: 100%; box-sizing: border-box; }
@@ -109,8 +106,7 @@
         .chat-img { max-width: 100%; max-height: 200px; border-radius: 12px; margin-top: 4px; display: block; object-fit: cover; }
         .video-msg { max-width: 200px; max-height: 260px; width: 100%; border-radius: 12px; margin-top: 4px; display: block; background: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
-        /* টাইপিং ইন্ডিকেটর এরিয়া */
-        .typing-indicator-area { padding: 2px 14px; font-size: 11px; color: #65676b; font-style: italic; background: var(--chat-wall); display: none; min-height: 16px; flex-shrink: 0; }
+        .typing-indicator-area { padding: 4px 14px; font-size: 11px; color: #65676b; font-style: italic; background: var(--chat-wall); display: none; min-height: 16px; flex-shrink: 0; }
 
         .chat-input-area { 
             display: flex; 
@@ -171,9 +167,10 @@
         </div>
     </div>
 
-    <div class="chat-messages" id="msgBox">
-        <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreMessages()">⬆️ পুরনো মেসেজ লোড করুন</button>
+    <div class="load-more-container" id="loadMoreArea">
+        <button class="load-more-btn" onclick="loadMoreMessages()">⬆️ পুরনো মেসেজ লোড করুন</button>
     </div>
+    <div class="chat-messages" id="msgBox"></div>
 
     <div class="typing-indicator-area" id="typingArea"></div>
     
@@ -193,9 +190,7 @@
     <div class="chat-input-area">
         <input type="file" id="fileInput" accept="image/*" onchange="sendImage(this)">
         <button class="image-btn" onclick="document.getElementById('fileInput').click()">🖼️</button>
-        
         <button class="image-btn" style="background:#ff0050" onclick="sendServerVideo()">📹</button>
-        
         <input type="text" class="chat-input" id="textInput" placeholder="মেসেজ লিখুন..." oninput="handleTyping()">
         <button class="send-btn" onclick="sendMsg()">➔</button>
         <button class="mic-btn" id="micBtn" onclick="toggleRecording()">🎤</button>
@@ -230,7 +225,6 @@
     let currentVideoIndex = 0;
     let isVideoMode = false;
 
-    // লোড মোরের ভেরিয়েবল
     let currentLimit = 40;
     let onlineUsersList = {};
     let typingTimeout = null;
@@ -312,20 +306,17 @@
         }
     }
 
-    // চ্যাট সিস্টেম এক্টিভেট করার মেইন ফাংশন
     function startChatSystem() {
         setupOnlineStatus();
         listenMessages();
         listenTyping();
     }
 
-    // ১. অনলাইন স্ট্যাটাস ট্র্যাকিং লজিক
     function setupOnlineStatus() {
         const statusRef = database.ref("online_status").child(currentUser.username);
         statusRef.set({ name: currentUser.name, last_active: Date.now() });
         statusRef.onDisconnect().remove();
 
-        // প্রতি ৩০ সেকেন্ডে এক্টিভিটি আপডেট
         setInterval(() => {
             statusRef.set({ name: currentUser.name, last_active: Date.now() });
         }, 30000);
@@ -347,7 +338,6 @@
         });
     }
 
-    // ২. টাইপিং ইন্ডিকেটর হ্যান্ডলার
     function handleTyping() {
         if (!currentUser) return;
         database.ref("typing_status").child(currentUser.username).set({ name: currentUser.name, typing: true });
@@ -379,27 +369,23 @@
         });
     }
 
-    // ৩. রিয়েল-টাইম মেসেজ লিসেনার (অপ্টিমাইজড)
     let msgListenerRef = null;
     function listenMessages() {
         const msgBox = document.getElementById('msgBox');
-        
-        // আগের কোনো লিসেনার থাকলে বন্ধ করা
         if(msgListenerRef) msgListenerRef.off();
 
-        // পুরনো মেসেজগুলোর রেন্ডারিং রিফ্রেশ করতে লোড মোর বাটন বাদে সব ডিলিট
-        const cards = msgBox.querySelectorAll('.message-row');
-        cards.forEach(el => el.remove());
+        msgBox.innerHTML = ""; 
+        globalVideos = [];
 
         msgListenerRef = database.ref("messages").orderByChild("timestamp").limitToLast(currentLimit);
         
         msgListenerRef.on("child_added", function(snapshot) {
-            var data = snapshot.val();
             var key = snapshot.key;
+            var data = snapshot.val();
             if(!currentUser || !data) return;
-            
-            if (document.getElementById("msg-" + key)) return;
 
+            if (document.getElementById("msg-" + key)) return;
+            
             var msgRow = document.createElement('div');
             msgRow.id = "msg-" + key;
             msgRow.className = (data.senderId === currentUser.username) ? "message-row sent" : "message-row received";
@@ -407,7 +393,6 @@
             var senderAvatar = data.avatar ? data.avatar : "https://www.w3schools.com/howto/img_avatar.png";
             var senderName = data.senderName ? data.senderName : "ইউজার";
             
-            // অনলাইন ডট সহ অ্যাভাটার এরিয়া
             var avatarHtml = `
                 <div class="avatar-container" data-uid="${data.senderId}">
                     <img src="${senderAvatar}" class="user-avatar" />
@@ -429,7 +414,6 @@
                 contentHtml = `${data.message || ""}`;
             }
 
-            // ৪. রিয়েল-টাইম ঘড়ির সময় ফরম্যাট
             let timeStr = "";
             if(data.timestamp) {
                 let date = new Date(data.timestamp);
@@ -461,31 +445,29 @@
 
             msgBox.appendChild(msgRow);
             msgBox.scrollTop = msgBox.scrollHeight;
-            
-            // অনলাইন স্ট্যাটাস ডট সাথে সাথে চেক করা
             updateOnlineDots();
         });
     }
 
-    // ৫. লোড মোর ফাংশন (পুরনো মেসেজ দেখার জন্য)
     function loadMoreMessages() {
-        currentLimit += 30; // প্রতি চাপে ৩০টি করে পুরনো মেসেজ বেশি লোড হবে
+        currentLimit += 30; 
         listenMessages();
     }
 
     function toggleViewMode() {
         const msgBox = document.getElementById('msgBox');
+        const loadMoreArea = document.getElementById('loadMoreArea');
         const videoBox = document.getElementById('videoBox');
         const viewModeBtn = document.getElementById('viewModeBtn');
         const mainVideoPlayer = document.getElementById('mainVideoPlayer');
 
         if(!isVideoMode) {
             if(globalVideos.length === 0) { alert("কোনো রিলস ভিডিও পাওয়া যায়নি ভাই!"); return; }
-            msgBox.style.display = 'none'; videoBox.style.display = 'flex';
+            msgBox.style.display = 'none'; loadMoreArea.style.display = 'none'; videoBox.style.display = 'flex';
             viewModeBtn.innerText = "💬 চ্যাট"; viewModeBtn.style.background = "#0084ff";
             isVideoMode = true; playVideoIndex(0);
         } else {
-            msgBox.style.display = 'flex'; videoBox.style.display = 'none';
+            msgBox.style.display = 'flex'; loadMoreArea.style.display = 'block'; videoBox.style.display = 'none';
             viewModeBtn.innerText = "🎬 রিলস"; viewModeBtn.style.background = "#ff0050";
             mainVideoPlayer.pause(); isVideoMode = false;
         }
@@ -504,7 +486,7 @@
             player.src = globalVideos[index].url;
             player.muted = false; 
             document.getElementById('vSender').innerText = "@" + globalVideos[index].sender;
-            player.play().catch(e => console.log("Interactive delay handler"));
+            player.play().catch(e => console.log("Interactive layer clear"));
         }
     }
 
@@ -524,7 +506,7 @@
             database.ref("messages").push().set({
                 "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": message, "type": "text", "timestamp": Date.now()
             });
-            database.ref("typing_status").child(currentUser.username).remove(); // মেসেজ পাঠানোর পর টাইপিং স্ট্যাটাস ডিলিট
+            database.ref("typing_status").child(currentUser.username).remove(); 
             textInput.value = "";
         }
     }
