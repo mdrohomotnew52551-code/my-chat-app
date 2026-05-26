@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>কমপ্যাক্ট চ্যাট রুম</title>
+    <title>কমপ্যাক্ট চ্যাট রুম ও রিলস</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -17,7 +17,6 @@
             --received-text: #000;
         }
 
-        /* যেকোনো মোবাইল স্ক্রিনে ১০০% ফিট করার ফিক্স */
         html, body { 
             height: 100%; 
             margin: 0; 
@@ -33,7 +32,6 @@
             align-items: center; 
         }
         
-        /* মূল চ্যাট কন্টেইনার যা স্ক্রিনের বাইরে যাবে না */
         .chat-container { 
             width: 100%; 
             max-width: 420px; 
@@ -43,7 +41,8 @@
             height: 100vh; 
             height: -webkit-fill-available; 
             position: relative; 
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            box-sizing: border-box;
         }
         
         .auth-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; }
@@ -57,24 +56,32 @@
         .avatar-picker img { width: 100%; height: 100%; object-fit: cover; }
         .avatar-picker span { font-size: 11px; color: #0084ff; text-align: center; padding: 3px; font-weight: bold; }
 
-        /* স্লিম হেডার */
         .chat-header { background: var(--header-bg); color: var(--header-text); padding: 10px 12px; font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 48px; box-sizing: border-box; flex-shrink: 0; }
         .header-buttons { display: flex; gap: 5px; align-items: center; }
         .theme-select { padding: 4px; border-radius: 6px; border: none; background: rgba(255,255,255,0.9); font-size: 11px; cursor: pointer; outline: none; }
         .video-toggle-btn { background: #ff0050; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
         .logout-btn { background: #ff3b30; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
         
-        /* মেসেজ এরিয়া যা স্ক্রোল হবে */
-        .chat-messages { flex: 1; padding: 10px; overflow-y: auto; background: var(--chat-wall); display: flex; flex-direction: column; gap: 8px; }
+        /* ডিসপ্লে লকিং হাইট */
+        .chat-messages { 
+            flex: 1 1 auto; 
+            padding: 10px; 
+            overflow-y: auto; 
+            background: var(--chat-wall); 
+            display: flex; 
+            flex-direction: column; 
+            gap: 8px; 
+            max-height: calc(100vh - 100px); 
+        }
         
+        /* টিকটক স্টাইল ফুল স্ক্রিন ভিডিও এরিয়া */
         .video-feed-area { display: none; flex: 1; background: #000; position: relative; flex-direction: column; justify-content: center; align-items: center; color: white; }
         .video-wrapper { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #000; }
         .video-player { width: 100%; height: 100%; object-fit: contain; }
-        .video-controls { position: absolute; bottom: 15px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .video-controls { position: absolute; bottom: 15px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-end; z-index: 8; }
         .video-info h4 { margin: 0 0 3px 0; font-size: 14px; color: #fff; }
         .video-info p { margin: 0; font-size: 11px; color: #ddd; }
         
-        /* মেসেজ বাবল */
         .message-row { display: flex; align-items: flex-end; gap: 6px; max-width: 85%; }
         .message-row.sent { align-self: flex-end; flex-direction: row-reverse; }
         .message-row.received { align-self: start; }
@@ -91,10 +98,10 @@
         audio { max-width: 100%; width: 180px; height: 32px; margin-top: 3px; display: block; }
         .chat-img { max-width: 100%; max-height: 180px; border-radius: 8px; margin-top: 3px; display: block; object-fit: cover; }
         
-        /* ভিডিওর সাইজ ছোট করার মূল ফিক্স - যাতে ডিসপ্লে ব্লক না হয় */
-        .video-msg { max-width: 150px; max-height: 220px; width: 100%; border-radius: 8px; margin-top: 3px; display: block; background: #000; }
+        /* চ্যাটের ভেতরের ভিডিও সাইজ ফিক্স */
+        .video-msg { max-width: 140px; max-height: 200px; width: 100%; border-radius: 8px; margin-top: 3px; display: block; background: #000; }
 
-        /* বটম ইনপুট এরিয়া ফিক্সড */
+        /* ইনপুট বার লকিং ফিক্স */
         .chat-input-area { 
             display: flex; 
             padding: 8px; 
@@ -105,12 +112,14 @@
             height: 52px; 
             box-sizing: border-box; 
             flex-shrink: 0; 
+            position: relative;
+            z-index: 5;
         }
         .chat-input { flex: 1; padding: 6px 12px; border: 1px solid #e4e6eb; border-radius: 18px; outline: none; background: var(--bg-color); color: var(--received-text); font-size: 13px; height: 34px; box-sizing: border-box; }
         .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 0; border-radius: 50%; cursor: pointer; font-size: 14px; width: 34px; height: 34px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         .mic-btn.recording { background: red; animation: pulse 1s infinite; }
         
-        #fileInput, #avatarInput, #videoInput { display: none; }
+        #fileInput, #avatarInput { display: none; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
@@ -161,9 +170,9 @@
         <div class="video-controls">
             <div class="video-info">
                 <h4 id="vSender">@username</h4>
-                <p id="vCaption">শেয়ার করা ভিডিও ক্লিপ 🎬</p>
+                <p id="vCaption">সার্ভার থেকে প্লে হচ্ছে 🎬</p>
             </div>
-            <button class="video-toggle-btn" style="background:#0084ff;" onclick="nextVideo()">➔ পরে</button>
+            <button class="video-toggle-btn" style="background:#0084ff; padding: 6px 12px;" onclick="nextVideo()">➔ পরবর্তী ভিডিও</button>
         </div>
     </div>
     
@@ -171,10 +180,9 @@
         <input type="file" id="fileInput" accept="image/*" onchange="sendImage(this)">
         <button class="image-btn" onclick="document.getElementById('fileInput').click()">🖼️</button>
         
-        <input type="file" id="videoInput" accept="video/*" onchange="sendVideo(this)">
-        <button class="image-btn" style="background:#ff0050" onclick="document.getElementById('videoInput').click()">📹</button>
+        <button class="image-btn" style="background:#ff0050" onclick="sendServerVideo()">📹</button>
         
-        <input type="text" class="chat-input" id="textInput" placeholder="মেসেজ...">
+        <input type="text" class="chat-input" id="textInput" placeholder="মেসেজ বা ভিডিও লিংক লিখুন...">
         <button class="send-btn" onclick="sendMsg()">➔</button>
         <button class="mic-btn" id="micBtn" onclick="toggleRecording()">🎤</button>
     </div>
@@ -310,7 +318,7 @@
             const player = document.getElementById('mainVideoPlayer');
             player.src = globalVideos[index].url;
             document.getElementById('vSender').innerText = "@" + globalVideos[index].sender;
-            player.play().catch(e => console.log("Auto play caught"));
+            player.play().catch(e => console.log("Auto play delay caught"));
         }
     }
 
@@ -334,6 +342,16 @@
         }
     }
 
+    // অন্য সার্ভারের ডিরেক্ট ভিডিও লিংক এখানে পেস্ট করে শেয়ার করার ফাংশন
+    function sendServerVideo() {
+        const videoUrl = prompt("অন্য সার্ভার থেকে আনা ভিডিওর ডিরেক্ট লিংক (URL) এখানে পেস্ট করুন ভাই:");
+        if (videoUrl && videoUrl.trim() !== "" && currentUser) {
+            database.ref("messages").push().set({
+                "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": videoUrl.trim(), "type": "video", "timestamp": Date.now()
+            });
+        }
+    }
+
     function sendImage(input) {
         if (input.files && input.files[0] && currentUser) {
             const reader = new FileReader();
@@ -343,20 +361,6 @@
                 });
             };
             reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function sendVideo(input) {
-        if (input.files && input.files[0] && currentUser) {
-            const file = input.files[0];
-            if(file.size > 100 * 1024 * 1024) { alert("ভিডিওটি ১০০ এমবির চেয়ে বড় ভাই!"); return; }
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                database.ref("messages").push().set({
-                    "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": e.target.result, "type": "video", "timestamp": Date.now()
-                });
-            };
-            reader.readAsDataURL(file);
         }
     }
 
@@ -412,7 +416,8 @@
         } else if(data.type === "image") {
             contentHtml = `<img src="${data.message}" class="chat-img" />`;
         } else if(data.type === "video") {
-            contentHtml = `<video src="${data.message}" class="video-msg" controls></video>`;
+            // অন্য যেকোনো সার্ভারের ভিডিও এখানে সুন্দরভাবে প্লে হবে
+            contentHtml = `<video src="${data.message}" class="video-msg" controls playsinline loops></video>`;
             globalVideos.push({ "id": key, "url": data.message, "sender": senderName });
         } else {
             contentHtml = `${data.message || ""}`;
