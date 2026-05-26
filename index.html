@@ -135,39 +135,67 @@
             z-index: 99;
         }
         .ai-robot-btn {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             background: linear-gradient(135deg, #00f2fe, #4facfe);
             border: 2px solid white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            font-size: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            font-size: 22px;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            transition: transform 0.2s;
+            position: relative;
         }
-        .ai-robot-btn:active { transform: scale(0.9); }
+        
+        /* রোবটের লাল নোটিফিকেশন লাইট */
+        .ai-status-light {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            background: red;
+            border-radius: 50%;
+            border: 1.5px solid white;
+        }
+        .ai-status-light.active { background: #4cd964; }
+
         .ai-panel {
             display: none;
             position: absolute;
-            bottom: 48px;
+            bottom: 50px;
             right: 0;
-            width: 180px;
+            width: 190px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            padding: 10px;
             box-sizing: border-box;
             border: 1px solid #eee;
         }
-        .ai-panel-title { font-size: 11px; font-weight: bold; color: #333; margin-bottom: 6px; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 4px; }
-        .ai-option { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #555; padding: 4px 0; }
-        .ai-switch { cursor: pointer; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 10px; border: none; }
+        .ai-panel-title { font-size: 12px; font-weight: bold; color: #333; margin-bottom: 8px; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        .ai-option { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #555; padding: 5px 0; }
+        .ai-switch { cursor: pointer; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; border: none; }
         .ai-switch.on { background: #4cd964; color: white; }
         .ai-switch.off { background: #ff3b30; color: white; }
-        .ai-about-btn { width: 100%; margin-top: 6px; padding: 4px; font-size: 10px; background: #f0f2f5; border: none; border-radius: 4px; cursor: pointer; color: #0084ff; font-weight: bold; }
+        
+        /* ব্রাউজার পারমিশন অ্যাক্টিভ করার স্পেশাল বাটন */
+        .ai-activate-btn {
+            width: 100%;
+            padding: 6px;
+            background: #ff9500;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        .ai-about-btn { width: 100%; padding: 4px; font-size: 10px; background: #f0f2f5; border: none; border-radius: 4px; cursor: pointer; color: #0084ff; font-weight: bold; }
 
         #fileInput, #avatarInput { display: none; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
@@ -218,9 +246,12 @@
     <div class="chat-messages" id="msgBox"></div>
 
     <div class="ai-assistant-widget" id="aiWidget" style="display:none;">
-        <button class="ai-robot-btn" onclick="toggleAiPanel(event)">🤖</button>
+        <button class="ai-robot-btn" onclick="toggleAiPanel(event)">🤖<div class="ai-status-light" id="aiStatusDot"></div></button>
         <div class="ai-panel" id="aiPanel" onclick="event.stopPropagation()">
             <div class="ai-panel-title">🤖 এআই অ্যাসিস্ট্যান্ট</div>
+            
+            <button class="ai-activate-btn" id="aiActBtn" onclick="activateAiVoice()">এআই সিস্টেম চালু করুন 🤖</button>
+            
             <div class="ai-option">
                 <span>🗣️ ভয়েস রিডার:</span>
                 <button class="ai-switch on" id="aiVoiceSwitch" onclick="toggleAiVoice()">ON</button>
@@ -286,9 +317,10 @@
     let onlineUsersList = {};
     let typingTimeout = null;
 
-    // এআই ভেরিয়েবল
+    // এআই কনফিগারেশন
     let isAiVoiceActive = true;
-    let isInitialLoad = true; // প্রথমবার পুরনো সব মেসেজ লোড হওয়ার সময় কথা বলা বন্ধ রাখার জন্য
+    let isInitialLoad = true;
+    let isVoiceEngineReady = false;
 
     window.onload = function() {
         const savedUser = localStorage.getItem("chat_user");
@@ -296,12 +328,11 @@
             currentUser = JSON.parse(savedUser);
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('roomTitle').innerText = `💬 ${currentUser.name}`;
-            document.getElementById('aiWidget').style.display = 'block'; // লগইন থাকলে এআই দেখাবে
+            document.getElementById('aiWidget').style.display = 'block';
             startChatSystem();
         }
     };
 
-    // এআই প্যানেল খোলা/বন্ধ করা
     function toggleAiPanel(event) {
         event.stopPropagation();
         const panel = document.getElementById('aiPanel');
@@ -312,7 +343,14 @@
         document.getElementById('aiPanel').style.display = 'none';
     });
 
-    // এআই ভয়েস অন-অফ করা
+    // ব্রাউজারের সিকিউরিটি লক আনলক করার জন্য এই ফাংশন
+    function activateAiVoice() {
+        isVoiceEngineReady = true;
+        document.getElementById('aiStatusDot').classList.add('active');
+        document.getElementById('aiActBtn').style.display = 'none';
+        speakText("হ্যালো ইব্রাহিম ভাই! এআই ভয়েস সিস্টেম এখন সম্পূর্ণ রেডি!");
+    }
+
     function toggleAiVoice() {
         const btn = document.getElementById('aiVoiceSwitch');
         if(isAiVoiceActive) {
@@ -323,24 +361,41 @@
             isAiVoiceActive = true;
             btn.innerText = "ON";
             btn.className = "ai-switch on";
-            speakText("ভয়েস সিস্টেম চালু করা হয়েছে ভাই।");
+            if(isVoiceEngineReady) speakText("ভয়েস সিস্টেম চালু হয়েছে।");
         }
     }
 
     function aiIntroduce() {
-        alert("আমি আপনার ব্যক্তিগত চ্যাট সহকারী রোবট! চ্যাটে নতুন মেসেজ আসলে আমি আপনাকে মুখে বলে দেব কে কাকে মেসেজ পাঠাল। ভবিষ্যতে আমি আরও অনেক জটিল কাজ করতে পারব ভাই!");
+        alert("আমি চ্যাট অ্যাসিস্ট্যান্ট রোবট! চ্যাটে নতুন কোনো মেসেজ, ছবি বা ভয়েস আসলে আমি মুখে বাংলায় বলে দেব কে কাকে কি পাঠাল!");
     }
 
-    // মুখ দিয়ে কথা বলানোর ফাংশন (Text to Speech)
+    // মুখ দিয়ে কথা বলার মেইন ফাংশন
     function speakText(text) {
         if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); // আগের কোনো আওয়াজ থাকলে তা থামিয়ে দেবে
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'bn-BD'; // বাংলা ভাষা সিলেক্ট করা হলো
-            utterance.pitch = 1.0;
-            utterance.rate = 1.0;
-            window.speechSynthesis.speak(utterance);
+            window.speechSynthesis.cancel(); 
+            
+            // স্পিচ ইঞ্জিন লোড হওয়া নিশ্চিত করতে ছোট ট্রিক
+            setTimeout(() => {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'bn-BD'; 
+                utterance.pitch = 1.1; // একটু মিষ্টি গলার জন্য পিচ বাড়ানো হলো
+                utterance.rate = 0.95;  // সুন্দর করে কথা বোঝার জন্য স্পিড কিছুটা স্বাভাবিক রাখা হলো
+                
+                // মোবাইল ব্রাউজারগুলোর জন্য ভয়েস সিলেকশন সাপোর্ট যোগ করা হলো
+                const voices = window.speechSynthesis.getVoices();
+                const bnVoice = voices.find(v => v.lang.includes('BN') || v.lang.includes('bn'));
+                if(bnVoice) utterance.voice = bnVoice;
+
+                window.speechSynthesis.speak(utterance);
+            }, 50);
         }
+    }
+
+    // পেইজ রিফ্রেশ হলে ব্রাউজার যাতে ভয়েস লিস্ট রেডি করতে পারে
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = function() {
+            console.log("Voices loaded successfully");
+        };
     }
 
     function toggleAuth(showLogin) {
@@ -485,9 +540,8 @@
 
         msgListenerRef = database.ref("messages").orderByChild("timestamp").limitToLast(currentLimit);
         
-        // প্রথমবার পুরনো মেসেজগুলো একসঙ্গে ক্যাচ করার ট্রিক
         msgListenerRef.once("value", function() {
-            setTimeout(() => { isInitialLoad = false; }, 2000); // ২ সেকেন্ড পর নতুন মেসেজের জন্য ভয়েস এক্টিভ হবে
+            setTimeout(() => { isInitialLoad = false; }, 2000); 
         });
 
         msgListenerRef.on("child_added", function(snapshot) {
@@ -512,23 +566,23 @@
             `;
 
             let contentHtml = "";
-            let speechType = "মেসেজ";
+            let speechTextContent = "একটি মেসেজ পাঠিয়েছেন";
 
             if(data.type === "audio") {
                 contentHtml = `<div class="audio-hold-wrapper"><audio src="${data.message}" controls preload="none"></audio></div>`;
-                speechType = "একটি ভয়েস মেসেজ";
+                speechTextContent = "একটি ভয়েস মেসেজ পাঠিয়েছেন।";
             } else if(data.type === "image") {
                 contentHtml = `<img src="${data.message}" class="chat-img" />`;
-                speechType = "একটি ছবি";
+                speechTextContent = "একটি ছবি পাঠিয়েছেন।";
             } else if(data.type === "video") {
                 contentHtml = `<video src="${data.message}" class="video-msg" controls playsinline preload="none"></video>`;
-                speechType = "একটি ভিডিও";
+                speechTextContent = "একটি ভিডিও রিলস পাঠিয়েছেন।";
                 if (!globalVideos.some(v => v.id === key)) {
                     globalVideos.push({ "id": key, "url": data.message, "sender": senderName });
                 }
             } else {
                 contentHtml = `${data.message || ""}`;
-                speechType = "লিখেছেন: " + contentHtml;
+                speechTextContent = "লিখেছেন: " + contentHtml;
             }
 
             let timeStr = "";
@@ -552,11 +606,10 @@
                 </div>
             `;
 
-            // 🤖 এআই ভয়েস রিডার লজিক: নতুন মেসেজ আসলেই মুখে আওয়াজ করবে
-            if (!isInitialLoad && isAiVoiceActive) {
+            // 🤖 নতুন মেসেজ রিয়েল-টাইমে পড়ে শোনানোর লজিক
+            if (!isInitialLoad && isAiVoiceActive && isVoiceEngineReady) {
                 if (data.senderId !== currentUser.username) {
-                    // অন্য কেউ মেসেজ দিলে বলবে
-                    speakText(senderName + " আপনাকে " + (data.type === 'text' ? 'মেসেজ দিয়েছেন। তিনি লিখেছেন: ' + data.message : speechType));
+                    speakText(senderName + " " + speechTextContent);
                 }
             }
 
