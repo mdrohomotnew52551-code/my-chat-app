@@ -2,7 +2,7 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>কমপ্যাক্ট চ্যাট রুম</title>
     <style>
         :root {
@@ -17,10 +17,11 @@
             --received-text: #000;
         }
 
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; transition: 0.3s; overflow: hidden; }
+        /* পুরো বডি স্ক্রিন ১০০% ফিট */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-color); display: flex; justify-content: center; align-items: center; height: 100vh; height: -webkit-fill-available; margin: 0; transition: 0.3s; overflow: hidden; }
         
-        /* পুরো স্ক্রিন ফিট করার জন্য সাইজ ছোট করা হলো */
-        .chat-container { width: 100%; max-width: 390px; background: var(--container-bg); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 95vh; position: relative; }
+        /* আপনার ফোনের স্ক্রিনের ভেতর বাটনগুলো ধরে রাখার জন্য হাইট ঠিক করা হলো */
+        .chat-container { width: 100%; max-width: 420px; background: var(--container-bg); overflow: hidden; display: flex; flex-direction: column; height: 100vh; height: -webkit-fill-available; position: relative; }
         
         .auth-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; }
         .auth-box { width: 100%; max-width: 290px; text-align: center; }
@@ -33,13 +34,14 @@
         .avatar-picker img { width: 100%; height: 100%; object-fit: cover; }
         .avatar-picker span { font-size: 11px; color: #0084ff; text-align: center; padding: 3px; font-weight: bold; }
 
-        /* হেডার স্লিম করা হলো */
-        .chat-header { background: var(--header-bg); color: var(--header-text); padding: 10px 12px; font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        /* স্লিম হেডার */
+        .chat-header { background: var(--header-bg); color: var(--header-text); padding: 10px 12px; font-size: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 45px; box-sizing: border-box; flex-shrink: 0; }
         .header-buttons { display: flex; gap: 5px; align-items: center; }
         .theme-select { padding: 4px; border-radius: 6px; border: none; background: rgba(255,255,255,0.9); font-size: 11px; cursor: pointer; outline: none; }
         .video-toggle-btn { background: #ff0050; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
         .logout-btn { background: #ff3b30; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
         
+        /* মেসেজ এরিয়া অটো স্ক্রোল হবে এবং ইনপুটকে জায়গা ছেড়ে দেবে */
         .chat-messages { flex: 1; padding: 10px; overflow-y: auto; background: var(--chat-wall); display: flex; flex-direction: column; gap: 8px; }
         
         .video-feed-area { display: none; flex: 1; background: #000; position: relative; flex-direction: column; justify-content: center; align-items: center; color: white; }
@@ -49,7 +51,7 @@
         .video-info h4 { margin: 0 0 3px 0; font-size: 14px; color: #fff; }
         .video-info p { margin: 0; font-size: 11px; color: #ddd; }
         
-        /* মেসেজ বাবল ও ফন্ট ছোট করা হলো যাতে সব স্পষ্ট বুঝা যায় */
+        /* সুন্দর কমপ্যাক্ট মেসেজ বাবল */
         .message-row { display: flex; align-items: flex-end; gap: 6px; max-width: 88%; }
         .message-row.sent { align-self: flex-end; flex-direction: row-reverse; }
         .message-row.received { align-self: start; }
@@ -63,17 +65,17 @@
         .message-row.received .msg { background: var(--received-msg); color: var(--received-text); border-bottom-left-radius: 4px; }
         .message-row.sent .msg { background: var(--sent-msg); color: var(--sent-text); border-bottom-right-radius: 4px; }
         
-        audio { max-width: 180px; height: 30px; margin-top: 3px; display: block; }
+        audio { max-width: 180px; height: 32px; margin-top: 3px; display: block; }
         .chat-img { max-width: 100%; max-height: 160px; border-radius: 8px; margin-top: 3px; display: block; }
         .video-msg { max-width: 180px; border-radius: 8px; margin-top: 3px; display: block; background: #000; }
 
-        /* ইনপুট এরিয়া আরও স্লিম করা হলো */
-        .chat-input-area { display: flex; padding: 8px; background: var(--container-bg); border-top: 1px solid rgba(0,0,0,0.05); align-items: center; gap: 5px; }
-        .chat-input { flex: 1; padding: 8px 12px; border: 1px solid #e4e6eb; border-radius: 18px; outline: none; background: var(--bg-color); color: var(--received-text); font-size: 13px; }
+        /* এই ইনপুট এরিয়াটি এখন সবসময় নিচে ফিক্সড থাকবে, কখনো ঢাকা পড়বে না */
+        .chat-input-area { display: flex; padding: 8px; background: var(--container-bg); border-top: 1px solid rgba(0,0,0,0.05); align-items: center; gap: 5px; height: 50px; box-sizing: border-box; flex-shrink: 0; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+        .chat-input { flex: 1; padding: 6px 12px; border: 1px solid #e4e6eb; border-radius: 18px; outline: none; background: var(--bg-color); color: var(--received-text); font-size: 13px; height: 32px; box-sizing: border-box; }
         .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 0; border-radius: 50%; cursor: pointer; font-size: 14px; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         .mic-btn.recording { background: red; animation: pulse 1s infinite; }
         
-        #fileInput, #avatarInput, #videoInput { display: none; }
+         TarfileInput, #avatarInput, #videoInput { display: none; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
@@ -171,7 +173,6 @@
     let currentVideoIndex = 0;
     let isVideoMode = false;
 
-    // পেজ লোড হলেই অটো-লগইন চেক করবে ভাই
     window.onload = function() {
         const savedUser = localStorage.getItem("chat_user");
         if(savedUser) {
@@ -229,10 +230,7 @@
                 const userData = snapshot.val();
                 if(userData.password === pass) {
                     currentUser = { "username": username, "name": userData.name, "avatar": userData.avatar };
-                    
-                    // ব্রাউজারে আইডি সেভ করে রাখার ম্যাজিক লাইন
                     localStorage.setItem("chat_user", JSON.stringify(currentUser));
-                    
                     document.getElementById('authScreen').style.display = 'none'; 
                     document.getElementById('roomTitle').innerText = `💬 ${currentUser.name}`;
                 } else { alert("পাসওয়ার্ডটি ভুল হয়েছে!"); }
