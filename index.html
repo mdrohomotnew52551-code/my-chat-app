@@ -2,8 +2,8 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
-    <title>ইনস্ট্যান্ট লোডিং চ্যাট রুম</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ইব্রাহিম ভাইয়ের সুপার চ্যাট রুম</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -17,191 +17,74 @@
             --received-text: #000;
         }
 
-        html, body { 
-            height: 100%; 
-            margin: 0; 
-            padding: 0; 
-            overflow: hidden; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: var(--bg-color); 
-        }
-        
-        body { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-        }
+        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: Arial, sans-serif; background: var(--bg-color); }
+        body { display: flex; justify-content: center; align-items: center; }
         
         .chat-container { 
-            width: 100%; 
-            max-width: 420px; 
-            background: var(--container-bg); 
-            display: flex; 
-            flex-direction: column; 
-            height: 100%; 
-            height: -webkit-fill-available;
-            position: relative; 
-            overflow: hidden;
-            box-sizing: border-box;
+            width: 100%; max-width: 420px; background: var(--container-bg); 
+            display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; box-sizing: border-box;
         }
         
         .auth-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; }
         .auth-box { width: 100%; max-width: 290px; text-align: center; }
         .auth-title { font-size: 20px; font-weight: bold; color: #0084ff; margin-bottom: 15px; }
-        .auth-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; outline: none; font-size: 13px; }
-        .auth-btn { width: 100%; padding: 10px; background: #0084ff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; margin-top: 5px; }
+        .auth-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 13px; }
+        .auth-btn { width: 100%; padding: 10px; background: #0084ff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
         .auth-toggle { margin-top: 12px; color: #555; font-size: 12px; cursor: pointer; text-decoration: underline; }
         
-        .avatar-picker { width: 75px; height: 75px; border-radius: 50%; background: #e4e6eb; margin: 0 auto 12px auto; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px dashed #0084ff; overflow: hidden; position: relative; }
+        .avatar-picker { width: 75px; height: 75px; border-radius: 50%; background: #e4e6eb; margin: 0 auto 12px auto; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px dashed #0084ff; overflow: hidden; }
         .avatar-picker img { width: 100%; height: 100%; object-fit: cover; }
-        .avatar-picker span { font-size: 11px; color: #0084ff; text-align: center; padding: 3px; font-weight: bold; }
 
-        .chat-header { background: var(--header-bg); color: var(--header-text); padding: 6px 10px; font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 44px; box-sizing: border-box; flex-shrink: 0; z-index: 6; }
+        .chat-header { background: var(--header-bg); color: var(--header-text); padding: 6px 10px; font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; height: 44px; box-sizing: border-box; flex-shrink: 0; z-index: 6; }
         .header-buttons { display: flex; gap: 5px; align-items: center; }
-        .theme-select { padding: 3px; border-radius: 6px; border: none; background: rgba(255,255,255,0.9); font-size: 10px; cursor: pointer; outline: none; }
         .video-toggle-btn { background: #ff0050; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
         .logout-btn { background: #ff3b30; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
         
-        .load-more-container { width: 100%; text-align: center; padding: 4px 0; background: transparent; flex-shrink: 0; border-bottom: 1px solid rgba(0,0,0,0.03); }
-        .load-more-btn { background: rgba(0,0,0,0.06); border: none; padding: 4px 12px; border-radius: 12px; font-size: 11px; color: #444; cursor: pointer; font-weight: bold; display: inline-block; }
+        .load-more-container { width: 100%; text-align: center; padding: 4px 0; background: transparent; flex-shrink: 0; }
+        .load-more-btn { background: rgba(0,0,0,0.06); border: none; padding: 4px 12px; border-radius: 12px; font-size: 11px; color: #444; cursor: pointer; font-weight: bold; }
 
-        .chat-messages { 
-            flex: 1; 
-            padding: 8px; 
-            overflow-y: auto; 
-            background: var(--chat-wall); 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-            box-sizing: border-box;
-            position: relative;
-        }
+        .chat-messages { flex: 1; padding: 8px; overflow-y: auto; background: var(--chat-wall); display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; }
         
-        .video-feed-area { display: none; flex: 1; background: #000; position: relative; flex-direction: column; justify-content: center; align-items: center; color: white; box-sizing: border-box; }
-        .video-wrapper { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #000; }
-        .video-player { width: 100%; height: 100%; object-fit: contain; }
-        .video-controls { position: absolute; bottom: 15px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: flex-end; z-index: 8; }
-        .video-info h4 { margin: 0 0 3px 0; font-size: 14px; color: #fff; }
-        .video-info p { margin: 0; font-size: 11px; color: #ddd; }
-        
-        .avatar-container { position: relative; display: inline-block; flex-shrink: 0; }
-        .online-dot { width: 8px; height: 8px; background-color: #4cd964; border: 1.5px solid var(--chat-wall); border-radius: 50%; position: absolute; bottom: 0; right: 0; z-index: 2; display: none; }
-        .avatar-container.online .online-dot { display: block; }
-
-        .message-row { display: flex; align-items: flex-end; gap: 6px; max-width: 85%; position: relative; }
+        .message-row { display: flex; align-items: flex-end; gap: 6px; max-width: 85%; }
         .message-row.sent { align-self: flex-end; flex-direction: row-reverse; }
         .message-row.received { align-self: start; }
-        .user-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; display: block; background: #ccc; }
+        .user-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #ccc; }
         
-        .msg-content-wrapper { display: flex; flex-direction: column; max-width: 100%; position: relative; }
-        .message-row.sent .msg-content-wrapper { align-items: flex-end; }
-        .message-row.received .msg-content-wrapper { align-items: flex-start; }
-        .name-tag { font-size: 10px; color: #65676b; margin-bottom: 1px; font-weight: 600; padding: 0 2px; }
-        
-        .time-stamp { font-size: 8px; color: #8a8d91; margin-top: 1px; padding: 0 4px; }
+        .avatar-container { position: relative; display: inline-block; flex-shrink: 0; }
+        .online-dot { width: 8px; height: 8px; background-color: #4cd964; border: 1.5px solid var(--chat-wall); border-radius: 50%; position: absolute; bottom: 0; right: 0; display: none; }
+        .avatar-container.online .online-dot { display: block; }
 
-        .msg { padding: 6px 10px; border-radius: 14px; word-wrap: break-word; display: inline-block; font-size: 13px; box-shadow: 0 1px 1px rgba(0,0,0,0.05); line-height: 1.3; max-width: 100%; box-sizing: border-box; position: relative; user-select: none; -webkit-user-select: none; }
+        .msg-content-wrapper { display: flex; flex-direction: column; max-width: 100%; }
+        .message-row.sent .msg-content-wrapper { align-items: flex-end; }
+        .name-tag { font-size: 10px; color: #65676b; margin-bottom: 1px; font-weight: 600; }
+        .time-stamp { font-size: 8px; color: #8a8d91; margin-top: 1px; }
+
+        .msg { padding: 6px 10px; border-radius: 14px; word-wrap: break-word; font-size: 13px; line-height: 1.3; max-width: 100%; box-sizing: border-box; }
         .message-row.received .msg { background: var(--received-msg); color: var(--received-text); border-bottom-left-radius: 4px; }
         .message-row.sent .msg { background: var(--sent-msg); color: var(--sent-text); border-bottom-right-radius: 4px; }
         
         audio { max-width: 100%; width: 170px; height: 30px; margin-top: 2px; display: block; }
-        .chat-img { max-width: 100%; max-height: 160px; border-radius: 10px; margin-top: 2px; display: block; object-fit: cover; pointer-events: none; }
-        .video-msg { max-width: 170px; max-height: 220px; width: 100%; border-radius: 10px; margin-top: 2px; display: block; background: #000; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+        .chat-img { max-width: 100%; max-height: 160px; border-radius: 10px; margin-top: 2px; display: block; }
 
-        .typing-indicator-area { padding: 2px 10px; font-size: 10px; color: #65676b; font-style: italic; background: var(--chat-wall); display: none; min-height: 14px; flex-shrink: 0; }
-
-        .chat-input-area { 
-            display: flex; 
-            padding: 5px 8px; 
-            background: var(--container-bg); 
-            border-top: 1px solid rgba(0,0,0,0.06); 
-            align-items: center; 
-            gap: 4px; 
-            height: 46px; 
-            box-sizing: border-box; 
-            flex-shrink: 0; 
-            position: relative;
-            z-index: 6;
-        }
+        .chat-input-area { display: flex; padding: 5px 8px; background: var(--container-bg); border-top: 1px solid rgba(0,0,0,0.06); align-items: center; gap: 4px; height: 46px; box-sizing: border-box; flex-shrink: 0; }
         .chat-input { flex: 1; padding: 4px 10px; border: 1px solid #e4e6eb; border-radius: 20px; outline: none; background: var(--bg-color); color: var(--received-text); font-size: 13px; height: 32px; box-sizing: border-box; }
-        .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 0; border-radius: 50%; cursor: pointer; font-size: 13px; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
-        .mic-btn.recording { background: red; animation: pulse 1s infinite; }
+        .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 0; border-radius: 50%; cursor: pointer; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         
-        /* ─── AI অ্যাসিস্ট্যান্ট স্টাইল ─── */
-        .ai-assistant-widget {
-            position: absolute;
-            bottom: 12px;
-            right: 12px;
-            z-index: 99;
-        }
-        .ai-robot-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #00f2fe, #4facfe);
-            border: 2px solid white;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-            font-size: 22px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            position: relative;
-        }
-        
-        /* রোবটের লাল নোটিফিকেশন লাইট */
-        .ai-status-light {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 10px;
-            height: 10px;
-            background: red;
-            border-radius: 50%;
-            border: 1.5px solid white;
-        }
-        .ai-status-light.active { background: #4cd964; }
-
-        .ai-panel {
-            display: none;
-            position: absolute;
-            bottom: 50px;
-            right: 0;
-            width: 190px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #eee;
-        }
-        .ai-panel-title { font-size: 12px; font-weight: bold; color: #333; margin-bottom: 8px; text-align: center; border-bottom: 1px solid #eee; padding-bottom: 4px; }
-        .ai-option { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #555; padding: 5px 0; }
-        .ai-switch { cursor: pointer; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; border: none; }
-        .ai-switch.on { background: #4cd964; color: white; }
-        .ai-switch.off { background: #ff3b30; color: white; }
-        
-        /* ব্রাউজার পারমিশন অ্যাক্টিভ করার স্পেশাল বাটন */
-        .ai-activate-btn {
-            width: 100%;
-            padding: 6px;
-            background: #ff9500;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 5px;
-            text-align: center;
-        }
-        .ai-about-btn { width: 100%; padding: 4px; font-size: 10px; background: #f0f2f5; border: none; border-radius: 4px; cursor: pointer; color: #0084ff; font-weight: bold; }
+        /* ─── AI অ্যাক্টিভেশন পপআপ স্টাইল ─── */
+        .ai-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; padding: 20px; text-align: center; box-sizing: border-box; }
+        .ai-start-btn { background: linear-gradient(135deg, #00f2fe, #4facfe); border: none; padding: 12px 24px; color: white; font-size: 16px; font-weight: bold; border-radius: 30px; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,242,254,0.4); }
 
         #fileInput, #avatarInput { display: none; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
+
+<div class="ai-overlay" id="aiActivationOverlay">
+    <span style="font-size: 40px;">🤖</span>
+    <h3 style="margin: 10px 0;">ইব্রাহিম ভাইয়ের এআই অ্যাসিস্ট্যান্ট</h3>
+    <p style="font-size: 13px; color: #ccc; margin: 0 10px;">ব্রাউজারের সিকিউরিটি লক খুলে মেসেজ ভয়েসে শোনার জন্য নিচের বাটনে চাপ দিন ভাই।</p>
+    <button class="ai-start-btn" onclick="unlockAiSystem()">এআই ভয়েস চালু করুন 🔊</button>
+</div>
 
 <div class="chat-container">
     <div class="auth-screen" id="authScreen">
@@ -209,7 +92,7 @@
             <div class="auth-title">🔐 চ্যাট রুমে লগইন করুন</div>
             <input type="text" id="loginUser" class="auth-input" placeholder="ইউজার আইডি (ছোট অক্ষরে)">
             <input type="password" id="loginPass" class="auth-input" placeholder="পাসওয়ার্ড লিখুন">
-            <button class="auth-btn" onclick="login()">ভেটারে প্রবেশ করুন</button>
+            <button class="auth-btn" onclick="login()">ভেতরে প্রবেশ করুন</button>
             <div class="auth-toggle" onclick="toggleAuth(false)">নতুন অ্যাকাউন্ট তৈরি করতে এখানে চাপুন</div>
         </div>
         
@@ -217,7 +100,7 @@
             <div class="auth-title">👤 নতুন অ্যাকাউন্ট খুলুন</div>
             <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(this)">
             <div class="avatar-picker" onclick="document.getElementById('avatarInput').click()" id="avatarPreviewBox">
-                <span>📸 প্রোফাইল ছবি</span>
+                <span style="font-size:12px; color:#0084ff;">📸 ছবি দিন</span>
             </div>
             <input type="text" id="signupName" class="auth-input" placeholder="আপনার আসল নাম">
             <input type="text" id="signupUser" class="auth-input" placeholder="ইউজার আইডি (যেমন: ibrahim)">
@@ -230,56 +113,20 @@
     <div class="chat-header">
         <span id="roomTitle">💬 চ্যাট রুম</span>
         <div class="header-buttons">
-            <button class="video-toggle-btn" id="viewModeBtn" onclick="toggleViewMode()">🎬 রিলস</button>
             <button class="logout-btn" onclick="logout()">লগআউট</button>
-            <select class="theme-select" id="themeChooser" onchange="changeTheme(this.value)">
-                <option value="light">☀️ লাইট</option>
-                <option value="dark">🌙 ডার্ক</option>
-            </select>
         </div>
     </div>
 
-    <div class="load-more-container" id="loadMoreArea">
-        <button class="load-more-btn" onclick="loadMoreMessages()">⬆️ পুরনো মেসেজ লোড করুন</button>
+    <div class="load-more-container">
+        <button class="load-more-btn" onclick="loadMoreMessages()">旧 পুরনো মেসেজ লোড করুন</button>
     </div>
     
     <div class="chat-messages" id="msgBox"></div>
-
-    <div class="ai-assistant-widget" id="aiWidget" style="display:none;">
-        <button class="ai-robot-btn" onclick="toggleAiPanel(event)">🤖<div class="ai-status-light" id="aiStatusDot"></div></button>
-        <div class="ai-panel" id="aiPanel" onclick="event.stopPropagation()">
-            <div class="ai-panel-title">🤖 এআই অ্যাসিস্ট্যান্ট</div>
-            
-            <button class="ai-activate-btn" id="aiActBtn" onclick="activateAiVoice()">এআই সিস্টেম চালু করুন 🤖</button>
-            
-            <div class="ai-option">
-                <span>🗣️ ভয়েস রিডার:</span>
-                <button class="ai-switch on" id="aiVoiceSwitch" onclick="toggleAiVoice()">ON</button>
-            </div>
-            <button class="ai-about-btn" onclick="aiIntroduce()">আমার কাজ কি? ❓</button>
-        </div>
-    </div>
-
-    <div class="typing-indicator-area" id="typingArea"></div>
-    
-    <div class="video-feed-area" id="videoBox">
-        <div class="video-wrapper">
-            <video class="video-player" id="mainVideoPlayer" src="" loop autoplay controls onclick="this.paused ? this.play() : this.pause()"></video>
-        </div>
-        <div class="video-controls">
-            <div class="video-info">
-                <h4 id="vSender">@username</h4>
-                <p id="vCaption">সার্ভার থেকে প্লে হচ্ছে 🔊</p>
-            </div>
-            <button class="video-toggle-btn" style="background:#0084ff; padding: 7px 14px;" onclick="nextVideo()">➔ পরবর্তী ভিডিও</button>
-        </div>
-    </div>
     
     <div class="chat-input-area">
         <input type="file" id="fileInput" accept="image/*" onchange="sendImage(this)">
         <button class="image-btn" onclick="document.getElementById('fileInput').click()">🖼️</button>
-        <button class="image-btn" style="background:#ff0050" onclick="sendServerVideo()">📹</button>
-        <input type="text" class="chat-input" id="textInput" placeholder="মেসেজ লিখুন..." oninput="handleTyping()">
+        <input type="text" class="chat-input" id="textInput" placeholder="মেসেজ লিখুন...">
         <button class="send-btn" onclick="sendMsg()">➔</button>
         <button class="mic-btn" id="micBtn" onclick="toggleRecording()">🎤</button>
     </div>
@@ -296,8 +143,7 @@
         projectId: "eibrahim-a67a6",
         storageBucket: "eibrahim-a67a6.appspot.com",
         messagingSenderId: "519997364197",
-        appId: "1:519997364197:web:35e7720",
-        measurementId: "G-4FKBB9DMJW"
+        appId: "1:519997364197:web:35e7720"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -308,19 +154,9 @@
     let audioChunks = [];
     let isRecording = false;
     let selectedAvatarBase64 = "";
-    
-    let globalVideos = []; 
-    let currentVideoIndex = 0;
-    let isVideoMode = false;
-
-    let currentLimit = 40;
-    let onlineUsersList = {};
-    let typingTimeout = null;
-
-    // এআই কনফিগারেশন
-    let isAiVoiceActive = true;
+    let currentLimit = 30;
     let isInitialLoad = true;
-    let isVoiceEngineReady = false;
+    let isVoiceReady = false;
 
     window.onload = function() {
         const savedUser = localStorage.getItem("chat_user");
@@ -328,74 +164,30 @@
             currentUser = JSON.parse(savedUser);
             document.getElementById('authScreen').style.display = 'none';
             document.getElementById('roomTitle').innerText = `💬 ${currentUser.name}`;
-            document.getElementById('aiWidget').style.display = 'block';
             startChatSystem();
         }
     };
 
-    function toggleAiPanel(event) {
-        event.stopPropagation();
-        const panel = document.getElementById('aiPanel');
-        panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    // এআই ভয়েস লক খোলার মেইন বাটন ফাংশন
+    function unlockAiSystem() {
+        isVoiceReady = true;
+        document.getElementById('aiActivationOverlay').style.display = 'none';
+        speakText("হ্যালো ইব্রাহিম ভাই! এআই ভয়েস সিস্টেম এখন অ্যাক্টিভ হয়েছে।");
     }
 
-    document.addEventListener('click', function() {
-        document.getElementById('aiPanel').style.display = 'none';
-    });
-
-    // ব্রাউজারের সিকিউরিটি লক আনলক করার জন্য এই ফাংশন
-    function activateAiVoice() {
-        isVoiceEngineReady = true;
-        document.getElementById('aiStatusDot').classList.add('active');
-        document.getElementById('aiActBtn').style.display = 'none';
-        speakText("হ্যালো ইব্রাহিম ভাই! এআই ভয়েস সিস্টেম এখন সম্পূর্ণ রেডি!");
-    }
-
-    function toggleAiVoice() {
-        const btn = document.getElementById('aiVoiceSwitch');
-        if(isAiVoiceActive) {
-            isAiVoiceActive = false;
-            btn.innerText = "OFF";
-            btn.className = "ai-switch off";
-        } else {
-            isAiVoiceActive = true;
-            btn.innerText = "ON";
-            btn.className = "ai-switch on";
-            if(isVoiceEngineReady) speakText("ভয়েস সিস্টেম চালু হয়েছে।");
-        }
-    }
-
-    function aiIntroduce() {
-        alert("আমি চ্যাট অ্যাসিস্ট্যান্ট রোবট! চ্যাটে নতুন কোনো মেসেজ, ছবি বা ভয়েস আসলে আমি মুখে বাংলায় বলে দেব কে কাকে কি পাঠাল!");
-    }
-
-    // মুখ দিয়ে কথা বলার মেইন ফাংশন
     function speakText(text) {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel(); 
+        if ('speechSynthesis' in window && isVoiceReady) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'bn-BD';
+            utterance.rate = 1.0;
             
-            // স্পিচ ইঞ্জিন লোড হওয়া নিশ্চিত করতে ছোট ট্রিক
-            setTimeout(() => {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'bn-BD'; 
-                utterance.pitch = 1.1; // একটু মিষ্টি গলার জন্য পিচ বাড়ানো হলো
-                utterance.rate = 0.95;  // সুন্দর করে কথা বোঝার জন্য স্পিড কিছুটা স্বাভাবিক রাখা হলো
-                
-                // মোবাইল ব্রাউজারগুলোর জন্য ভয়েস সিলেকশন সাপোর্ট যোগ করা হলো
-                const voices = window.speechSynthesis.getVoices();
-                const bnVoice = voices.find(v => v.lang.includes('BN') || v.lang.includes('bn'));
-                if(bnVoice) utterance.voice = bnVoice;
-
-                window.speechSynthesis.speak(utterance);
-            }, 50);
+            const voices = window.speechSynthesis.getVoices();
+            const bnVoice = voices.find(v => v.lang.includes('BN') || v.lang.includes('bn'));
+            if(bnVoice) utterance.voice = bnVoice;
+            
+            window.speechSynthesis.speak(utterance);
         }
-    }
-
-    // পেইজ রিফ্রেশ হলে ব্রাউজার যাতে ভয়েস লিস্ট রেডি করতে পারে
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.onvoiceschanged = function() {
-            console.log("Voices loaded successfully");
-        };
     }
 
     function toggleAuth(showLogin) {
@@ -408,7 +200,7 @@
             const reader = new FileReader();
             reader.onload = function (e) {
                 selectedAvatarBase64 = e.target.result;
-                document.getElementById('avatarPreviewBox').innerHTML = `<img src="${selectedAvatarBase64}" />`;
+                document.getElementById('avatarPreviewBox').innerHTML = `<img src="${selectedAvatarBase64}" style="width:100%;height:100%;object-fit:cover;" />`;
             };
             reader.readAsDataURL(input.files[0]);
         }
@@ -419,17 +211,13 @@
         const username = document.getElementById('signupUser').value.trim().toLowerCase();
         const pass = document.getElementById('signupPass').value.trim();
 
-        if(!name || !username || !pass) { alert("সবগুলো বক্স পূরণ করুন ভাই!"); return; }
-        if(!selectedAvatarBase64) { alert("একটি প্রোফাইল ছবি সিলেক্ট করুন!"); return; }
+        if(!name || !username || !pass || !selectedAvatarBase64) { alert("সব তথ্য সঠিকভাবে দিন ভাই!"); return; }
 
         database.ref("users").child(username).once("value", function(snapshot) {
-            if(snapshot.exists()) {
-                alert("এই আইডিটি অন্য কেউ নিয়ে নিয়েছে!");
-            } else {
-                database.ref("users").child(username).set({
-                    "name": name, "password": pass, "avatar": selectedAvatarBase64
-                }, function(error) {
-                    if(!error) { alert("অ্যাকাউন্ট তৈরি সফল! এবার লগইন করুন।"); toggleAuth(true); }
+            if(snapshot.exists()) { alert("এই আইডিটি ইতিমধ্যে রেজিস্টার্ড!"); }
+            else {
+                database.ref("users").child(username).set({ "name": name, "password": pass, "avatar": selectedAvatarBase64 }, function(error) {
+                    if(!error) { alert("অ্যাকাউন্ট তৈরি সফল! লগইন করুন।"); toggleAuth(true); }
                 });
             }
         });
@@ -439,277 +227,95 @@
         const username = document.getElementById('loginUser').value.trim().toLowerCase();
         const pass = document.getElementById('loginPass').value.trim();
 
-        if(!username || !pass) { alert("আইডি এবং পাসওয়ার্ড লিখুন!"); return; }
+        if(!username || !pass) { alert("আইডি ও পাসওয়ার্ড দিন!"); return; }
 
         database.ref("users").child(username).once("value", function(snapshot) {
-            if(snapshot.exists()) {
-                const userData = snapshot.val();
-                if(userData.password === pass) {
-                    currentUser = { "username": username, "name": userData.name, "avatar": userData.avatar };
-                    localStorage.setItem("chat_user", JSON.stringify(currentUser));
-                    document.getElementById('authScreen').style.display = 'none'; 
-                    document.getElementById('roomTitle').innerText = `💬 ${currentUser.name}`;
-                    document.getElementById('aiWidget').style.display = 'block';
-                    startChatSystem();
-                } else { alert("পাসওয়ার্ডটি ভুল হয়েছে!"); }
-            } else { alert("এই আইডি দিয়ে কোনো অ্যাকাউন্ট নেই!"); }
+            if(snapshot.exists() && snapshot.val().password === pass) {
+                currentUser = { "username": username, "name": snapshot.val().name, "avatar": snapshot.val().avatar };
+                localStorage.setItem("chat_user", JSON.stringify(currentUser));
+                document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('roomTitle').innerText = `💬 ${currentUser.name}`;
+                startChatSystem();
+            } else { alert("ভুল পাসওয়ার্ড বা আইডি!"); }
         });
     }
 
     function logout() {
-        if(confirm("আপনি কি লগআউট করতে চান?")) {
-            if(currentUser) {
-                database.ref("online_status").child(currentUser.username).remove();
-            }
-            localStorage.removeItem("chat_user");
-            location.reload();
-        }
+        localStorage.removeItem("chat_user");
+        location.reload();
     }
 
     function startChatSystem() {
-        setupOnlineStatus();
         listenMessages();
-        listenTyping();
     }
 
-    function setupOnlineStatus() {
-        const statusRef = database.ref("online_status").child(currentUser.username);
-        statusRef.set({ name: currentUser.name, last_active: Date.now() });
-        statusRef.onDisconnect().remove();
-
-        setInterval(() => {
-            statusRef.set({ name: currentUser.name, last_active: Date.now() });
-        }, 30000);
-
-        database.ref("online_status").on("value", function(snapshot) {
-            onlineUsersList = snapshot.val() || {};
-            updateOnlineDots();
-        });
-    }
-
-    function updateOnlineDots() {
-        document.querySelectorAll('.avatar-container').forEach(container => {
-            const uid = container.getAttribute('data-uid');
-            if (onlineUsersList[uid]) {
-                container.classList.add('online');
-            } else {
-                container.classList.remove('online');
-            }
-        });
-    }
-
-    function handleTyping() {
-        if (!currentUser) return;
-        database.ref("typing_status").child(currentUser.username).set({ name: currentUser.name, typing: true });
-        
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => {
-            database.ref("typing_status").child(currentUser.username).remove();
-        }, 2000);
-    }
-
-    function listenTyping() {
-        database.ref("typing_status").on("value", function(snapshot) {
-            const data = snapshot.val();
-            const typingArea = document.getElementById('typingArea');
-            let typers = [];
-            
-            for(let key in data) {
-                if(key !== currentUser.username) {
-                    typers.push(data[key].name);
-                }
-            }
-
-            if(typers.length > 0) {
-                typingArea.innerText = typers.join(", ") + " লিখছেন...";
-                typingArea.style.display = 'block';
-            } else {
-                typingArea.style.display = 'none';
-            }
-        });
-    }
-
-    let msgListenerRef = null;
     function listenMessages() {
         const msgBox = document.getElementById('msgBox');
-        if(msgListenerRef) msgListenerRef.off();
-
-        msgBox.innerHTML = ""; 
-        globalVideos = [];
+        msgBox.innerHTML = "";
         isInitialLoad = true;
 
-        msgListenerRef = database.ref("messages").orderByChild("timestamp").limitToLast(currentLimit);
+        const msgRef = database.ref("messages").orderByChild("timestamp").limitToLast(currentLimit);
         
-        msgListenerRef.once("value", function() {
-            setTimeout(() => { isInitialLoad = false; }, 2000); 
+        msgRef.once("value", function() {
+            setTimeout(() => { isInitialLoad = false; }, 1500);
         });
 
-        msgListenerRef.on("child_added", function(snapshot) {
-            var key = snapshot.key;
-            var data = snapshot.val();
+        msgRef.on("child_added", function(snapshot) {
+            const key = snapshot.key;
+            const data = snapshot.val();
             if(!currentUser || !data) return;
 
-            if (document.getElementById("msg-" + key)) return;
-            
-            var msgRow = document.createElement('div');
-            msgRow.id = "msg-" + key;
+            const msgRow = document.createElement('div');
             msgRow.className = (data.senderId === currentUser.username) ? "message-row sent" : "message-row received";
 
-            var senderAvatar = data.avatar ? data.avatar : "https://www.w3schools.com/howto/img_avatar.png";
-            var senderName = data.senderName ? data.senderName : "ইউজার";
-            
-            var avatarHtml = `
-                <div class="avatar-container" data-uid="${data.senderId}">
-                    <img src="${senderAvatar}" class="user-avatar" />
-                    <div class="online-dot"></div>
-                </div>
-            `;
+            const senderAvatar = data.avatar || "https://www.w3schools.com/howto/img_avatar.png";
+            const senderName = data.senderName || "ইউজার";
 
             let contentHtml = "";
-            let speechTextContent = "একটি মেসেজ পাঠিয়েছেন";
+            let speechContent = "একটি মেসেজ পাঠিয়েছেন";
 
-            if(data.type === "audio") {
-                contentHtml = `<div class="audio-hold-wrapper"><audio src="${data.message}" controls preload="none"></audio></div>`;
-                speechTextContent = "একটি ভয়েস মেসেজ পাঠিয়েছেন।";
-            } else if(data.type === "image") {
+            if(data.type === "image") {
                 contentHtml = `<img src="${data.message}" class="chat-img" />`;
-                speechTextContent = "একটি ছবি পাঠিয়েছেন।";
-            } else if(data.type === "video") {
-                contentHtml = `<video src="${data.message}" class="video-msg" controls playsinline preload="none"></video>`;
-                speechTextContent = "একটি ভিডিও রিলস পাঠিয়েছেন।";
-                if (!globalVideos.some(v => v.id === key)) {
-                    globalVideos.push({ "id": key, "url": data.message, "sender": senderName });
-                }
+                speechContent = "একটি ছবি পাঠিয়েছেন";
+            } else if(data.type === "audio") {
+                contentHtml = `<audio src="${data.message}" controls preload="none"></audio>`;
+                speechContent = "একটি ভয়েস মেসেজ পাঠিয়েছেন";
             } else {
-                contentHtml = `${data.message || ""}`;
-                speechTextContent = "লিখেছেন: " + contentHtml;
-            }
-
-            let timeStr = "";
-            if(data.timestamp) {
-                let date = new Date(data.timestamp);
-                let hours = date.getHours();
-                let minutes = date.getMinutes();
-                let ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12; 
-                minutes = minutes < 10 ? '0'+minutes : minutes;
-                timeStr = hours + ':' + minutes + ' ' + ampm;
+                contentHtml = data.message;
+                speechContent = "বলছেন: " + data.message;
             }
 
             msgRow.innerHTML = `
-                ${avatarHtml}
+                <div class="avatar-container"><img src="${senderAvatar}" class="user-avatar" /></div>
                 <div class="msg-content-wrapper">
                     <span class="name-tag">${data.senderId === currentUser.username ? 'আপনি' : senderName}</span>
                     <div class="msg">${contentHtml}</div>
-                    <span class="time-stamp">${timeStr}</span>
                 </div>
             `;
 
-            // 🤖 নতুন মেসেজ রিয়েল-টাইমে পড়ে শোনানোর লজিক
-            if (!isInitialLoad && isAiVoiceActive && isVoiceEngineReady) {
-                if (data.senderId !== currentUser.username) {
-                    speakText(senderName + " " + speechTextContent);
-                }
-            }
-
-            // লং প্রেস পপ-আপ লজিক ডিলিটের জন্য
-            if(data.senderId === currentUser.username) {
-                let pressTimer;
-                const msgBubble = msgRow.querySelector('.msg');
-
-                const startPress = function(e) {
-                    if(e.target.tagName === 'AUDIO' || e.target.tagName === 'VIDEO') return;
-                    pressTimer = setTimeout(function() {
-                        var confirmDelete = confirm("ইব্রাহিম ভাই, আপনি কি নিশ্চিতভাবে এই মেসেজ/ছবি/ভয়েসটি ডিলিট করতে চান?");
-                        if (confirmDelete) { deleteMessage(key); }
-                    }, 1200);
-                };
-
-                const endPress = function() { clearTimeout(pressTimer); };
-
-                msgBubble.addEventListener('touchstart', startPress, {passive: true});
-                msgBubble.addEventListener('touchend', endPress, {passive: true});
-                msgBubble.addEventListener('touchmove', endPress, {passive: true});
-                msgBubble.addEventListener('mousedown', startPress);
-                msgBubble.addEventListener('mouseup', endPress);
-                msgBubble.addEventListener('mouseleave', endPress);
-            }
-
             msgBox.appendChild(msgRow);
             msgBox.scrollTop = msgBox.scrollHeight;
-            updateOnlineDots();
+
+            // 🤖 নতুন মেসেজ আসলে এআই স্বয়ংক্রিয়ভাবে কথা বলবে
+            if(!isInitialLoad && data.senderId !== currentUser.username) {
+                speakText(senderName + " " + speechContent);
+            }
         });
     }
 
     function loadMoreMessages() {
-        currentLimit += 30; 
+        currentLimit += 20;
         listenMessages();
     }
 
-    function toggleViewMode() {
-        const msgBox = document.getElementById('msgBox');
-        const loadMoreArea = document.getElementById('loadMoreArea');
-        const videoBox = document.getElementById('videoBox');
-        const viewModeBtn = document.getElementById('viewModeBtn');
-        const mainVideoPlayer = document.getElementById('mainVideoPlayer');
-
-        if(!isVideoMode) {
-            if(globalVideos.length === 0) { alert("কোনো রিলস ভিডিও পাওয়া যায়নি ভাই!"); return; }
-            msgBox.style.display = 'none'; loadMoreArea.style.display = 'none'; videoBox.style.display = 'flex';
-            viewModeBtn.innerText = "💬 চ্যাট"; viewModeBtn.style.background = "#0084ff";
-            isVideoMode = true; playVideoIndex(0);
-        } else {
-            msgBox.style.display = 'flex'; loadMoreArea.style.display = 'block'; videoBox.style.display = 'none';
-            viewModeBtn.innerText = "🎬 রিলস"; viewModeBtn.style.background = "#ff0050";
-            mainVideoPlayer.pause(); isVideoMode = false;
-        }
-    }
-
-    function nextVideo() {
-        if(globalVideos.length > 0) {
-            currentVideoIndex = (currentVideoIndex + 1) % globalVideos.length;
-            playVideoIndex(currentVideoIndex);
-        }
-    }
-
-    function playVideoIndex(index) {
-        if(globalVideos[index]) {
-            const player = document.getElementById('mainVideoPlayer');
-            player.src = globalVideos[index].url;
-            player.muted = false; 
-            document.getElementById('vSender').innerText = "@" + globalVideos[index].sender;
-            player.play().catch(e => console.log("Interactive layer clear"));
-        }
-    }
-
-    function changeTheme(themeName) {
-        const root = document.documentElement;
-        if(themeName === 'dark') {
-            root.style.setProperty('--bg-color', '#121212'); root.style.setProperty('--container-bg', '#1e1e1e'); root.style.setProperty('--header-bg', '#292929'); root.style.setProperty('--chat-wall', '#181818'); root.style.setProperty('--received-msg', '#333333'); root.style.setProperty('--sent-msg', '#005c4b'); root.style.setProperty('--sent-text', '#fff'); root.style.setProperty('--received-text', '#ffffff');
-        } else {
-            root.style.setProperty('--bg-color', '#f0f2f5'); root.style.setProperty('--container-bg', 'white'); root.style.setProperty('--header-bg', '#0084ff'); root.style.setProperty('--chat-wall', '#e5ddd5'); root.style.setProperty('--received-msg', 'white'); root.style.setProperty('--sent-msg', '#0084ff'); root.style.setProperty('--sent-text', '#fff'); root.style.setProperty('--received-text', '#000000');
-        }
-    }
-
     function sendMsg() {
-        var textInput = document.getElementById('textInput');
-        var message = textInput.value.trim();
+        const textInput = document.getElementById('textInput');
+        const message = textInput.value.trim();
         if(message !== "" && currentUser) {
             database.ref("messages").push().set({
                 "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": message, "type": "text", "timestamp": Date.now()
             });
-            database.ref("typing_status").child(currentUser.username).remove(); 
             textInput.value = "";
-        }
-    }
-
-    function sendServerVideo() {
-        const videoUrl = prompt("অন্য সার্ভার থেকে আনা ভিডিওর ডিরেক্ট লিংক (URL) পেস্ট করুন ভাই:");
-        if (videoUrl && videoUrl.trim() !== "" && currentUser) {
-            database.ref("messages").push().set({
-                "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": videoUrl.trim(), "type": "video", "timestamp": Date.now()
-            });
         }
     }
 
@@ -745,23 +351,12 @@
                         }
                     };
                 };
-                mediaRecorder.start(); isRecording = true; micBtn.innerText = "🛑"; micBtn.classList.add('recording');
-            } catch (err) { alert("মাইক্রোফোন পারমিশন দিন ভাই!"); }
+                mediaRecorder.start(); isRecording = true; micBtn.innerText = "🛑";
+            } catch (err) { alert("মাইক্রোফোন অন করার পারমিশন দিন ভাই!"); }
         } else {
-            mediaRecorder.stop(); isRecording = false; micBtn.innerText = "🎤"; micBtn.classList.remove('recording');
+            mediaRecorder.stop(); isRecording = false; micBtn.innerText = "🎤";
         }
     }
-
-    function deleteMessage(msgId) {
-        database.ref("messages").child(msgId).remove();
-    }
-
-    database.ref("messages").on("child_removed", function(snapshot) {
-        var key = snapshot.key;
-        var deletedElement = document.getElementById("msg-" + key);
-        if (deletedElement) { deletedElement.remove(); }
-        globalVideos = globalVideos.filter(v => v.id !== key);
-    });
 </script>
 
 </body>
