@@ -41,7 +41,7 @@
         
         .chat-messages { flex: 1; padding: 15px; overflow-y: auto; background: var(--chat-wall); display: flex; flex-direction: column; gap: 12px; }
         
-        /* ভিডিও ফিড এরিয়ার আধুনিক ডিজাইন (TikTok Style) */
+        /* ভিডিও ফিড এরিয়ার ডিজাইন (TikTok Style) */
         .video-feed-area { display: none; flex: 1; background: #000; position: relative; flex-direction: column; justify-content: center; align-items: center; color: white; }
         .video-wrapper { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: #000; }
         .video-player { width: 100%; height: 100%; object-fit: contain; }
@@ -86,7 +86,7 @@
     <div class="auth-screen" id="authScreen">
         <div class="auth-box" id="loginBox">
             <div class="auth-title">🔐 চ্যাট রুমে লগইন করুন</div>
-            <input type="text" id="loginUser" class="auth-input" placeholder="আপনার ইউজার আইডি (ইংরেজি ছোট অক্ষরে)">
+            <input type="text" id="loginUser" class="auth-input" placeholder="ইউজার আইডি (ইংরেজি ছোট অক্ষরে)">
             <input type="password" id="loginPass" class="auth-input" placeholder="পাসওয়ার্ড লিখুন">
             <button class="auth-btn" onclick="login()">ভেতরে প্রবেশ করুন</button>
             <div class="auth-toggle" onclick="toggleAuth(false)">নতুন অ্যাকাউন্ট তৈরি করতে এখানে চাপুন</div>
@@ -98,9 +98,9 @@
             <div class="avatar-picker" onclick="document.getElementById('avatarInput').click()" id="avatarPreviewBox">
                 <span>📸 প্রোফাইল ছবি দিন</span>
             </div>
-            <input type="text" id="signupName" class="auth-input" placeholder="আপনার আসল নাম (বাংলা বা ইংরেজি)">
-            <input type="text" id="signupUser" class="auth-input" placeholder="ইউজার আইডি (যেমন: ibrahim52)">
-            <input type="password" id="signupPass" class="auth-input" placeholder="একটি গোপন পাসওয়ার্ড দিন">
+            <input type="text" id="signupName" class="auth-input" placeholder="আপনার আসল নাম">
+            <input type="text" id="signupUser" class="auth-input" placeholder="ইউজার আইডি (যেমন: ibrahim)">
+            <input type="password" id="signupPass" class="auth-input" placeholder="পাসওয়ার্ড দিন">
             <button class="auth-btn" onclick="signup()">অ্যাকাউন্ট নিশ্চিত করুন</button>
             <div class="auth-toggle" onclick="toggleAuth(true)">ইতিমধ্যে অ্যাকাউন্ট থাকলে লগইন করুন</div>
         </div>
@@ -181,7 +181,7 @@
     let isRecording = false;
     let selectedAvatarBase64 = "";
     
-    let globalVideos = []; // সব ভিডিওর লিস্ট রাখার জন্য
+    let globalVideos = []; 
     let currentVideoIndex = 0;
     let isVideoMode = false;
 
@@ -222,7 +222,7 @@
         });
     }
 
-    // লগইন কোডের বাগটি এখানে সফলভাবে ফিক্স করা হয়েছে
+    // ফিক্সড লগইন ফাংশন (যা এতক্ষণ আটকে ছিল)
     function login() {
         const username = document.getElementById('loginUser').value.trim().toLowerCase();
         const pass = document.getElementById('loginPass').value.trim();
@@ -234,14 +234,13 @@
                 const userData = snapshot.val();
                 if(userData.password === pass) {
                     currentUser = { "username": username, "name": userData.name, "avatar": userData.avatar };
-                    document.getElementById('authScreen').style.display = 'none'; // ফিক্সড: লগইন স্ক্রিন সুন্দরভাবে হাইড হবে
+                    document.getElementById('authScreen').style.display = 'none'; // এখানে বাগ ফিক্স করা হয়েছে
                     document.getElementById('roomTitle').innerText = `💬 ${currentUser.name}`;
                 } else { alert("পাসওয়ার্ডটি ভুল হয়েছে ভাই!"); }
             } else { alert("এই ইউজার আইডি দিয়ে কোনো অ্যাকাউন্ট পাওয়া যায়নি!"); }
         });
     }
 
-    // চ্যাট মোড এবং টিকটক ভিডিও মোড অদলবদল করার লজিক
     function toggleViewMode() {
         const msgBox = document.getElementById('msgBox');
         const videoBox = document.getElementById('videoBox');
@@ -266,7 +265,6 @@
         }
     }
 
-    // পরবর্তী ভিডিও প্লে করার ফাংশন
     function nextVideo() {
         if(globalVideos.length > 0) {
             currentVideoIndex = (currentVideoIndex + 1) % globalVideos.length;
@@ -315,7 +313,6 @@
         }
     }
 
-    // গ্যালারি থেকে বন্ধুদের ভিডিও পাঠানোর নতুন ফাংশন (সম্পূর্ণ ফ্রি ট্রিক)
     function sendVideo(input) {
         if (input.files && input.files[0] && currentUser) {
             const file = input.files[0];
@@ -351,8 +348,7 @@
                         }
                     };
                 };
-                mediaRecorder.start();
-                isRecording = true; micBtn.innerText = "🛑"; micBtn.classList.add('recording');
+                mediaRecorder.start(); isRecording = true; micBtn.innerText = "🛑"; micBtn.classList.add('recording');
             } catch (err) { alert("মাইক্রোফোন পারমিশন দিন ভাই!"); }
         } else {
             mediaRecorder.stop(); isRecording = false; micBtn.innerText = "🎤"; micBtn.classList.remove('recording');
@@ -382,7 +378,6 @@
         } else if(data.type === "image") {
             contentHtml = `<img src="${data.message}" class="chat-img" />`;
         } else if(data.type === "video") {
-            // ভিডিও মেসেজ হলে চ্যাটেও প্লে করা যাবে, আবার লিস্টেও সেভ হবে
             contentHtml = `<video src="${data.message}" class="video-msg" controls></video>`;
             globalVideos.push({ "id": key, "url": data.message, "sender": data.senderName });
         } else {
