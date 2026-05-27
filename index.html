@@ -36,8 +36,9 @@
         .avatar-picker img { width: 100%; height: 100%; object-fit: cover; }
 
         .chat-header { background: var(--header-bg); color: var(--header-text); padding: 6px 10px; font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; height: 44px; box-sizing: border-box; flex-shrink: 0; z-index: 6; }
-        .header-buttons { display: flex; gap: 5px; align-items: center; }
-        .logout-btn { background: #ff3b30; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
+        .header-buttons { display: flex; gap: 8px; align-items: center; }
+        .call-btn { background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .logout-btn { background: #ff3b30; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
         
         .load-more-container { width: 100%; text-align: center; padding: 4px 0; background: transparent; flex-shrink: 0; }
         .load-more-btn { background: rgba(0,0,0,0.06); border: none; padding: 4px 12px; border-radius: 12px; font-size: 11px; color: #444; cursor: pointer; font-weight: bold; }
@@ -50,13 +51,10 @@
         .user-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #ccc; }
         
         .avatar-container { position: relative; display: inline-block; flex-shrink: 0; }
-        .online-dot { width: 8px; height: 8px; background-color: #4cd964; border: 1.5px solid var(--chat-wall); border-radius: 50%; position: absolute; bottom: 0; right: 0; display: none; }
-        .avatar-container.online .online-dot { display: block; }
 
         .msg-content-wrapper { display: flex; flex-direction: column; max-width: 100%; }
         .message-row.sent .msg-content-wrapper { align-items: flex-end; }
         .name-tag { font-size: 10px; color: #65676b; margin-bottom: 1px; font-weight: 600; }
-        .time-stamp { font-size: 8px; color: #8a8d91; margin-top: 1px; }
 
         .msg { padding: 6px 10px; border-radius: 14px; word-wrap: break-word; font-size: 13px; line-height: 1.3; max-width: 100%; box-sizing: border-box; }
         .message-row.received .msg { background: var(--received-msg); color: var(--received-text); border-bottom-left-radius: 4px; }
@@ -69,9 +67,16 @@
         .chat-input { flex: 1; padding: 4px 10px; border: 1px solid #e4e6eb; border-radius: 20px; outline: none; background: var(--bg-color); color: var(--received-text); font-size: 13px; height: 32px; box-sizing: border-box; }
         .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 0; border-radius: 50%; cursor: pointer; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         
-        /* ─── AI অ্যাক্টিভেশন পপআপ স্টাইল ─── */
+        /* ─── এআই ও কল স্ক্রিন ওভারলে স্টাইল ─── */
         .ai-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; padding: 20px; text-align: center; box-sizing: border-box; }
         .ai-start-btn { background: linear-gradient(135deg, #00f2fe, #4facfe); border: none; padding: 12px 24px; color: white; font-size: 16px; font-weight: bold; border-radius: 30px; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,242,254,0.4); }
+
+        .call-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: #1c1c1e; z-index: 998; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; }
+        .call-status { font-size: 18px; margin-top: 15px; color: #a2a2a7; }
+        .call-actions { display: flex; gap: 20px; margin-top: 40px; }
+        .call-action-btn { border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; font-size: 14px; cursor: pointer; color: white; }
+        .btn-accept { background: #34c759; }
+        .btn-decline { background: #ff3b30; }
 
         #fileInput, #avatarInput { display: none; }
     </style>
@@ -83,6 +88,16 @@
     <h3 style="margin: 10px 0;">ইব্রাহিম ভাইয়ের এআই অ্যাসিস্ট্যান্ট</h3>
     <p style="font-size: 13px; color: #ccc; margin: 0 10px;">ব্রাউজারের সিকিউরিটি লক খুলে মেসেজ ভয়েসে শোনার জন্য নিচের বাটনে চাপ দিন ভাই।</p>
     <button class="ai-start-btn" onclick="unlockAiSystem()">এআই ভয়েস চালু করুন 🔊</button>
+</div>
+
+<div class="call-overlay" id="callOverlay">
+    <div style="font-size: 60px; animation: pulse 1.5s infinite;">📞</div>
+    <h2 id="callUserTitle" style="margin: 15px 0 5px 0;">বন্ধুর কল</h2>
+    <div class="call-status" id="callStatusText">কল আসছে...</div>
+    <div class="call-actions">
+        <button class="call-action-btn btn-accept" id="acceptCallBtn" onclick="acceptIncomingCall()">কল ধরুন</button>
+        <button class="call-action-btn btn-decline" onclick="endAudioCall()">কেটে দিন</button>
+    </div>
 </div>
 
 <div class="chat-container">
@@ -112,6 +127,7 @@
     <div class="chat-header">
         <span id="roomTitle">💬 চ্যাট রুম</span>
         <div class="header-buttons">
+            <button class="call-btn" onclick="startAudioCall()">📞 কল দিন</button>
             <button class="logout-btn" onclick="logout()">লগআউট</button>
         </div>
     </div>
@@ -133,6 +149,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.18.0.js"></script>
 
 <script>
     const firebaseConfig = {
@@ -148,6 +165,11 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
+    // ─── অ্যাগোরা অডিও কল কনফিগ (আপনার স্ক্রিনশট থেকে নেওয়া) ───
+    const AGORA_APP_ID = "216f9f740da44e0eb86db893df1ecf42"; 
+    const AGORA_TOKEN = "007eJxTYGD6vOnA9PzF3M1z1pzwE8v6eFfym96+E3vCdrYInzK9KbtVgcE81SDF0szS0MzY0MQ0McnE0MLC0DLV0MAw0czC3NTEeE6SckpDIGPC6i8srIwMEAji8zCkpBYXpTIwAABQbyE=";
+    const CHANNEL_NAME = "chat_room";
+
     let currentUser = null;
     let mediaRecorder;
     let audioChunks = [];
@@ -156,7 +178,11 @@
     let currentLimit = 30;
     let isInitialLoad = true;
     let isVoiceReady = false;
-    let currentMsgRef = null; // ডাবল লিসেনার আটকানোর ভ্যারিয়েবল
+    let currentMsgRef = null;
+
+    // অ্যাগোরা ক্লায়েন্ট ভ্যারিয়েবলস
+    let agoraClient = null;
+    let localAudioTrack = null;
 
     window.onload = function() {
         const savedUser = localStorage.getItem("chat_user");
@@ -172,6 +198,7 @@
         isVoiceReady = true;
         document.getElementById('aiActivationOverlay').style.display = 'none';
         speakText("হ্যালো ইব্রাহিম ভাই! এআই ভয়েস সিস্টেম এখন অ্যাক্টিভ হয়েছে।");
+        initAgora(); // কল সিস্টেম ব্যাকগ্রাউন্ডে রেডি করা
     }
 
     function speakText(text) {
@@ -180,13 +207,107 @@
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'bn-BD';
             utterance.rate = 1.0;
-            
-            const voices = window.speechSynthesis.getVoices();
-            const bnVoice = voices.find(v => v.lang.includes('BN') || v.lang.includes('bn'));
-            if(bnVoice) utterance.voice = bnVoice;
-            
             window.speechSynthesis.speak(utterance);
         }
+    }
+
+    // ─── অ্যাগোরা কোর কোড লোড করা ───
+    function initAgora() {
+        agoraClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+        
+        // দূর থেকে কেউ কলে জয়েন করলে স্পিকারে শোনানো
+        agoraClient.on("user-published", async (user, mediaType) => {
+            await agoraClient.subscribe(user, mediaType);
+            if (mediaType === "audio") {
+                user.audioTrack.play();
+                document.getElementById("callStatusText").innerText = "কথা বলুন (Connected) 🔊";
+            }
+        });
+
+        agoraClient.on("user-unpublished", (user) => {
+            endAudioCall();
+        });
+
+        listenCallSignals();
+    }
+
+    // ফায়ারবেসের মাধ্যমে কল আসার সিগন্যাল ট্র্যাক করা
+    function listenCallSignals() {
+        database.ref("current_call").on("value", function(snapshot) {
+            const callData = snapshot.val();
+            if (callData && callData.status === "calling" && callData.callerId !== currentUser.username) {
+                // ইনকামিং কল স্ক্রিন অন করা
+                document.getElementById("callOverlay").style.display = "flex";
+                document.getElementById("callUserTitle").innerText = callData.callerName;
+                document.getElementById("callStatusText").innerText = "আপনাকে অডিও কল দিচ্ছে...";
+                document.getElementById("acceptCallBtn").style.display = "inline-block";
+                speakText(callData.callerName + " আপনাকে কল দিচ্ছে ভাই।");
+            } else if (!callData && document.getElementById("callOverlay").style.display === "flex") {
+                // কল কেটে দিলে স্ক্রিন বন্ধ করা
+                closeCallOverlay();
+            }
+        });
+    }
+
+    // 📞 ১. কল দেওয়া শুরু করা (Dialing)
+    async function startAudioCall() {
+        if (!currentUser) return;
+        document.getElementById("callOverlay").style.display = "flex";
+        document.getElementById("callUserTitle").innerText = "কল হচ্ছে...";
+        document.getElementById("callStatusText").innerText = "রিং হচ্ছে, অপেক্ষা করুন...";
+        document.getElementById("acceptCallBtn").style.display = "none"; // নিজের জন্য একসেপ্ট বাটন হাইড
+
+        // ফায়ারবেসে কলের সিগন্যাল পাঠানো
+        database.ref("current_call").set({
+            callerId: currentUser.username,
+            callerName: currentUser.name,
+            status: "calling"
+        });
+
+        try {
+            await agoraClient.join(AGORA_APP_ID, CHANNEL_NAME, AGORA_TOKEN, currentUser.username);
+            localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+            await agoraClient.publish([localAudioTrack]);
+        } catch (err) {
+            console.error(err);
+            alert("মাইক্রোফোন চালু করা যায়নি ভাই!");
+            endAudioCall();
+        }
+    }
+
+    // 🟢 ২. ইনকামিং কল রিসিভ করা (Answer)
+    async function acceptIncomingCall() {
+        document.getElementById("callStatusText").innerText = "কানেক্ট হচ্ছে...";
+        document.getElementById("acceptCallBtn").style.display = "none";
+
+        try {
+            await agoraClient.join(AGORA_APP_ID, CHANNEL_NAME, AGORA_TOKEN, currentUser.username);
+            localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+            await agoraClient.publish([localAudioTrack]);
+            document.getElementById("callStatusText").innerText = "কথা বলুন (Connected) 🔊";
+        } catch (err) {
+            alert("কল রিসিভ করতে সমস্যা হয়েছে!");
+            endAudioCall();
+        }
+    }
+
+    // 🛑 ৩. কল কেটে দেওয়া (Hang Up)
+    async function endAudioCall() {
+        if (localAudioTrack) {
+            localAudioTrack.stop();
+            localAudioTrack.close();
+            localAudioTrack = null;
+        }
+        if (agoraClient) {
+            await agoraClient.leave();
+        }
+        database.ref("current_call").remove(); // ফায়ারবেস থেকে সিগন্যাল মুছে দেওয়া
+        closeCallOverlay();
+    }
+
+    function closeCallOverlay() {
+        document.getElementById("callOverlay").style.display = "none";
+        window.speechSynthesis.cancel();
     }
 
     function toggleAuth(showLogin) {
@@ -250,13 +371,10 @@
 
     function listenMessages() {
         const msgBox = document.getElementById('msgBox');
-        msgBox.innerHTML = ""; // পেজ ক্লিয়ার করা
+        msgBox.innerHTML = "";
         isInitialLoad = true;
 
-        // আগের কোনো একটিভ লিসেনার থাকলে তা বন্ধ করে দেওয়া (ডাবল মেসেজ ফিক্স)
-        if (currentMsgRef) {
-            currentMsgRef.off();
-        }
+        if (currentMsgRef) { currentMsgRef.off(); }
 
         currentMsgRef = database.ref("messages").orderByChild("timestamp").limitToLast(currentLimit);
         
@@ -299,7 +417,6 @@
             msgBox.appendChild(msgRow);
             msgBox.scrollTop = msgBox.scrollHeight;
 
-            // নতুন মেসেজে এআই কথা বলবে
             if(!isInitialLoad && data.senderId !== currentUser.username) {
                 speakText(senderName + " " + speechContent);
             }
