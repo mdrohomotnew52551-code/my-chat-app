@@ -67,7 +67,6 @@
         .chat-input { flex: 1; padding: 4px 10px; border: 1px solid #e4e6eb; border-radius: 20px; outline: none; background: var(--bg-color); color: var(--received-text); font-size: 13px; height: 32px; box-sizing: border-box; }
         .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 0; border-radius: 50%; cursor: pointer; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         
-        /* ─── এআই ও কল স্ক্রিন ওভারলে স্টাইল ─── */
         .ai-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; padding: 20px; text-align: center; box-sizing: border-box; }
         .ai-start-btn { background: linear-gradient(135deg, #00f2fe, #4facfe); border: none; padding: 12px 24px; color: white; font-size: 16px; font-weight: bold; border-radius: 30px; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,242,254,0.4); }
 
@@ -106,7 +105,7 @@
             <div class="auth-title">🔐 চ্যাট রুমে লগইন করুন</div>
             <input type="text" id="loginUser" class="auth-input" placeholder="ইউজার আইডি (ছোট অক্ষরে)">
             <input type="password" id="loginPass" class="auth-input" placeholder="পাসওয়ার্ড লিখুন">
-            <button class="auth-btn" onclick="login()">ভেতরে প্রবেশ করুন</button>
+            <button class="auth-btn" onclick="login()">ভেটারে প্রবেশ করুন</button>
             <div class="auth-toggle" onclick="toggleAuth(false)">নতুন অ্যাকাউন্ট তৈরি করতে এখানে চাপুন</div>
         </div>
         
@@ -165,9 +164,8 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // ─── অ্যাগোরা অডিও কল কনফিগ (আপনার স্ক্রিনশট থেকে নেওয়া) ───
+    // ─── টোকেন ফ্রি বা উইদাউট টোকেন মোড অ্যাক্টিভ করা হলো ───
     const AGORA_APP_ID = "216f9f740da44e0eb86db893df1ecf42"; 
-    const AGORA_TOKEN = "007eJxTYGD6vOnA9PzF3M1z1pzwE8v6eFfym96+E3vCdrYInzK9KbtVgcE81SDF0szS0MzY0MQ0McnE0MLC0DLV0MAw0czC3NTEeE6SckpDIGPC6i8srIwMEAji8zCkpBYXpTIwAABQbyE=";
     const CHANNEL_NAME = "chat_room";
 
     let currentUser = null;
@@ -180,7 +178,6 @@
     let isVoiceReady = false;
     let currentMsgRef = null;
 
-    // অ্যাগোরা ক্লায়েন্ট ভ্যারিয়েবলস
     let agoraClient = null;
     let localAudioTrack = null;
 
@@ -197,8 +194,8 @@
     function unlockAiSystem() {
         isVoiceReady = true;
         document.getElementById('aiActivationOverlay').style.display = 'none';
-        speakText("হ্যালো ইব্রাহিম ভাই! এআই ভয়েস সিস্টেম এখন অ্যাক্টিভ হয়েছে।");
-        initAgora(); // কল সিস্টেম ব্যাকগ্রাউন্ডে রেডি করা
+        speakText("হ্যালো ইব্রাহিম ভাই! ভয়েস সিস্টেম রেডি।");
+        initAgora();
     }
 
     function speakText(text) {
@@ -211,11 +208,9 @@
         }
     }
 
-    // ─── অ্যাগোরা কোর কোড লোড করা ───
     function initAgora() {
         agoraClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         
-        // দূর থেকে কেউ কলে জয়েন করলে স্পিকারে শোনানো
         agoraClient.on("user-published", async (user, mediaType) => {
             await agoraClient.subscribe(user, mediaType);
             if (mediaType === "audio") {
@@ -231,33 +226,28 @@
         listenCallSignals();
     }
 
-    // ফায়ারবেসের মাধ্যমে কল আসার সিগন্যাল ট্র্যাক করা
     function listenCallSignals() {
         database.ref("current_call").on("value", function(snapshot) {
             const callData = snapshot.val();
             if (callData && callData.status === "calling" && callData.callerId !== currentUser.username) {
-                // ইনকামিং কল স্ক্রিন অন করা
                 document.getElementById("callOverlay").style.display = "flex";
                 document.getElementById("callUserTitle").innerText = callData.callerName;
                 document.getElementById("callStatusText").innerText = "আপনাকে অডিও কল দিচ্ছে...";
                 document.getElementById("acceptCallBtn").style.display = "inline-block";
                 speakText(callData.callerName + " আপনাকে কল দিচ্ছে ভাই।");
             } else if (!callData && document.getElementById("callOverlay").style.display === "flex") {
-                // কল কেটে দিলে স্ক্রিন বন্ধ করা
                 closeCallOverlay();
             }
         });
     }
 
-    // 📞 ১. কল দেওয়া শুরু করা (Dialing)
     async function startAudioCall() {
         if (!currentUser) return;
         document.getElementById("callOverlay").style.display = "flex";
         document.getElementById("callUserTitle").innerText = "কল হচ্ছে...";
         document.getElementById("callStatusText").innerText = "রিং হচ্ছে, অপেক্ষা করুন...";
-        document.getElementById("acceptCallBtn").style.display = "none"; // নিজের জন্য একসেপ্ট বাটন হাইড
+        document.getElementById("acceptCallBtn").style.display = "none";
 
-        // ফায়ারবেসে কলের সিগন্যাল পাঠানো
         database.ref("current_call").set({
             callerId: currentUser.username,
             callerName: currentUser.name,
@@ -265,33 +255,33 @@
         });
 
         try {
-            await agoraClient.join(AGORA_APP_ID, CHANNEL_NAME, AGORA_TOKEN, currentUser.username);
+            // এখানে টোকেন না দিয়ে null ব্যবহার করা হয়েছে সিকিউরিটি এরর এড়াতে
+            await agoraClient.join(AGORA_APP_ID, CHANNEL_NAME, null, Math.floor(Math.random() * 10000));
             localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
             await agoraClient.publish([localAudioTrack]);
+            document.getElementById("callStatusText").innerText = "রিং হচ্ছে...";
         } catch (err) {
             console.error(err);
-            alert("মাইক্রোফোন চালু করা যায়নি ভাই!");
+            alert("মাইক্রোফোন বা কানেকশন সমস্যা! অনুগ্রহ করে আপনার অ্যাগোরা প্রজেক্টে টোকেন অফ (Testing Mode) করে দিন ভাই।");
             endAudioCall();
         }
     }
 
-    // 🟢 ২. ইনকামিং কল রিসিভ করা (Answer)
     async function acceptIncomingCall() {
         document.getElementById("callStatusText").innerText = "কানেক্ট হচ্ছে...";
         document.getElementById("acceptCallBtn").style.display = "none";
 
         try {
-            await agoraClient.join(AGORA_APP_ID, CHANNEL_NAME, AGORA_TOKEN, currentUser.username);
+            await agoraClient.join(AGORA_APP_ID, CHANNEL_NAME, null, Math.floor(Math.random() * 10000));
             localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
             await agoraClient.publish([localAudioTrack]);
             document.getElementById("callStatusText").innerText = "কথা বলুন (Connected) 🔊";
         } catch (err) {
-            alert("কল রিসিভ করতে সমস্যা হয়েছে!");
+            alert("কল রিসিভ করা যায়নি!");
             endAudioCall();
         }
     }
 
-    // 🛑 ৩. কল কেটে দেওয়া (Hang Up)
     async function endAudioCall() {
         if (localAudioTrack) {
             localAudioTrack.stop();
@@ -301,7 +291,7 @@
         if (agoraClient) {
             await agoraClient.leave();
         }
-        database.ref("current_call").remove(); // ফায়ারবেস থেকে সিগন্যাল মুছে দেওয়া
+        database.ref("current_call").remove();
         closeCallOverlay();
     }
 
