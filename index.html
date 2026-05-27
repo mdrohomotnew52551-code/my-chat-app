@@ -37,7 +37,6 @@
 
         .chat-header { background: var(--header-bg); color: var(--header-text); padding: 6px 10px; font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; height: 44px; box-sizing: border-box; flex-shrink: 0; z-index: 6; }
         .header-buttons { display: flex; gap: 5px; align-items: center; }
-        .video-toggle-btn { background: #ff0050; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
         .logout-btn { background: #ff3b30; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; }
         
         .load-more-container { width: 100%; text-align: center; padding: 4px 0; background: transparent; flex-shrink: 0; }
@@ -157,6 +156,7 @@
     let currentLimit = 30;
     let isInitialLoad = true;
     let isVoiceReady = false;
+    let currentMsgRef = null; // ডাবল লিসেনার আটকানোর ভ্যারিয়েবল
 
     window.onload = function() {
         const savedUser = localStorage.getItem("chat_user");
@@ -168,7 +168,6 @@
         }
     };
 
-    // এআই ভয়েস লক খোলার মেইন বাটন ফাংশন
     function unlockAiSystem() {
         isVoiceReady = true;
         document.getElementById('aiActivationOverlay').style.display = 'none';
@@ -251,17 +250,21 @@
 
     function listenMessages() {
         const msgBox = document.getElementById('msgBox');
-        msgBox.innerHTML = "";
+        msgBox.innerHTML = ""; // পেজ ক্লিয়ার করা
         isInitialLoad = true;
 
-        const msgRef = database.ref("messages").orderByChild("timestamp").limitToLast(currentLimit);
+        // আগের কোনো একটিভ লিসেনার থাকলে তা বন্ধ করে দেওয়া (ডাবল মেসেজ ফিক্স)
+        if (currentMsgRef) {
+            currentMsgRef.off();
+        }
+
+        currentMsgRef = database.ref("messages").orderByChild("timestamp").limitToLast(currentLimit);
         
-        msgRef.once("value", function() {
-            setTimeout(() => { isInitialLoad = false; }, 1500);
+        currentMsgRef.once("value", function() {
+            setTimeout(() => { isInitialLoad = false; }, 1200);
         });
 
-        msgRef.on("child_added", function(snapshot) {
-            const key = snapshot.key;
+        currentMsgRef.on("child_added", function(snapshot) {
             const data = snapshot.val();
             if(!currentUser || !data) return;
 
@@ -296,7 +299,7 @@
             msgBox.appendChild(msgRow);
             msgBox.scrollTop = msgBox.scrollHeight;
 
-            // 🤖 নতুন মেসেজ আসলে এআই স্বয়ংক্রিয়ভাবে কথা বলবে
+            // নতুন মেসেজে এআই কথা বলবে
             if(!isInitialLoad && data.senderId !== currentUser.username) {
                 speakText(senderName + " " + speechContent);
             }
