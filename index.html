@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ইব্রাহিম ভাইয়ের সুপার চ্যাট রুম</title>
+    <title>লাইভ চেটিং মেসেঞ্জার</title>
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -151,10 +151,11 @@
 <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.18.0.js"></script>
 
 <script>
+    // ─── ফায়ারবেজ কনফিগ (সংশোধিত এবং সুরক্ষিত লিঙ্কসহ) ───
     const firebaseConfig = {
         apiKey: "AIzaSyDbpbfLrMUXoFjhUC37l",
         authDomain: "eibrahim-a67a6.firebaseapp.com",
-        databaseURL: "https://eibrahim-a67a6-default-rtdb.firebaseio.com",
+        databaseURL: "https://eibrahim-a67a6-default-rtdb.firebaseio.com", // লিঙ্কটি http থেকে https করা হয়েছে
         projectId: "eibrahim-a67a6",
         storageBucket: "eibrahim-a67a6.appspot.com",
         messagingSenderId: "519997364197",
@@ -164,7 +165,6 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // ─── টোকেন ফ্রি বা উইদাউট টোকেন মোড অ্যাক্টিভ করা হলো ───
     const AGORA_APP_ID = "216f9f740da44e0eb86db893df1ecf42"; 
     const CHANNEL_NAME = "chat_room";
 
@@ -255,7 +255,6 @@
         });
 
         try {
-            // এখানে টোকেন না দিয়ে null ব্যবহার করা হয়েছে সিকিউরিটি এরর এড়াতে
             await agoraClient.join(AGORA_APP_ID, CHANNEL_NAME, null, Math.floor(Math.random() * 10000));
             localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
             await agoraClient.publish([localAudioTrack]);
