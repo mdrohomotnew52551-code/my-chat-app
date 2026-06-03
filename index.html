@@ -102,16 +102,16 @@
     </div>
 
     <script>
-        // ইব্রাহিম ভাই, আপনার ফায়ারবেস চাবি নিচে সেট করা রয়েছে
+        // ইব্রাহিম ভাই, আপনার পাঠানো একদম সঠিক এবং সম্পূর্ণ কনফিগারেশন এখানে আপডেট করে দেওয়া হয়েছে
         const firebaseConfig = {
-            apiKey: "AIzaSyDbpbflrM-YV4u57u_66X3h9bS8Y6jSg0k",
+            apiKey: "AIzaSyDbpbflrMUXoFjhUC37kYSzO3hoy5G9o58",
             authDomain: "eibrahim-a67a6.firebaseapp.com",
             databaseURL: "https://eibrahim-a67a6-default-rtdb.firebaseio.com",
             projectId: "eibrahim-a67a6",
-            storageBucket: "eibrahim-a67a6.appspot.com",
+            storageBucket: "eibrahim-a67a6.firebasestorage.app",
             messagingSenderId: "519997364197",
-            appId: "1:519997364197:web:b7e52254acf44de9207e410c",
-            measurementId: "G-38KBH96ZZE"
+            appId: "1:519997364197:web:b7e522546acfe9207e410c",
+            measurementId: "G-38KBHKB8WT"
         };
         
         firebase.initializeApp(firebaseConfig);
@@ -123,21 +123,20 @@
         let chatRef = null;
         let confirmationResultObj = null;
 
-        // রোবট ভেরিফিকেশন লোড করা
+        // রিক্যাপচা ভেরিফায়ার
         window.onload = function() {
             window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
                 'size': 'invisible'
             });
         };
 
-        // ইউজার লগইন অবস্থা চেক
+        // লগইন অবস্থা পরিবর্তন ট্র্যাক করা
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
                 
-                // নাম ডাটাবেজে সেভ করা (যদি থাকে)
                 let savedName = localStorage.getItem('temp_name') || user.phoneNumber;
                 document.getElementById('user-display-name').innerText = savedName;
                 
@@ -154,7 +153,7 @@
             }
         });
 
-        // ওটিপি কোড পাঠানো
+        // ওটিপি পাঠানো
         function sendOTPCode() {
             const name = document.getElementById('user-profile-name').value.trim();
             const phone = document.getElementById('phone-number').value.trim();
@@ -178,19 +177,19 @@
                 });
         }
 
-        // ওটিপি কোড যাচাই ও লগইন
+        // ওটিপি কোড ভেরিফিকেশন
         function verifyOTPCode() {
             const code = document.getElementById('otp-code').value.trim();
             if (!code) { alert("কোডটি সঠিকভাবে লিখুন ভাই।"); return; }
 
             confirmationResultObj.confirm(code).then((result) => {
-                // সফলভাবে লগইন হয়েছে
+                // সফলভাবে লগইন সম্পন্ন
             }).catch((error) => {
-                alert("ভুল ওটিপি কোড! আবার চেষ্টা করুন।");
+                alert("ভুল ওটিপি কোড! আবার চেষ্টা করুন ভাই।");
             });
         }
 
-        // ইউজার তালিকা লোড করা
+        // ইউজার তালিকা রিয়েলটাইম লোড
         function loadUserList() {
             database.ref('users').on('value', snapshot => {
                 const usersListUI = document.getElementById('users-list-ui');
@@ -216,7 +215,7 @@
             });
         }
 
-        // চ্যাট বক্স ওপেন করা
+        // ব্যক্তিগত চ্যাট বক্স ওপেন
         function openChatBox(targetUid, targetName) {
             activeChatUserId = targetUid;
             document.getElementById('user-screen').style.display = 'none';
