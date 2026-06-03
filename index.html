@@ -2,471 +2,273 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>লাইভ চেটিং মেসেঞ্জার</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Messenger - Mobile Login Chat</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
     <style>
-        :root {
-            --bg-color: #f0f2f5;
-            --container-bg: white;
-            --header-bg: #0084ff;
-            --header-text: white;
-            --chat-wall: #e5ddd5;
-            --received-msg: white;
-            --sent-msg: #0084ff;
-            --sent-text: white;
-            --received-text: #000;
-        }
-
-        html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: Arial, sans-serif; background: var(--bg-color); }
-        body { display: flex; justify-content: center; align-items: center; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f2f5; height: 100vh; display: flex; flex-direction: column; }
         
-        .chat-container { 
-            width: 100%; max-width: 420px; background: var(--container-bg); 
-            display: flex; flex-direction: column; height: 100%; position: relative; overflow: hidden; box-sizing: border-box;
-        }
+        /* Auth Screen */
+        #auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; background: white; }
+        .logo-box { text-align: center; margin-bottom: 30px; }
+        .logo-box h2 { color: #4fae61; margin-top: 10px; }
+        .input-group { width: 100%; max-width: 350px; margin-bottom: 15px; }
+        .input-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+        .auth-btn { width: 100%; max-width: 350px; padding: 12px; background: #0084ff; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
-        .auth-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 15px; box-sizing: border-box; }
-        .auth-box { width: 100%; max-width: 290px; text-align: center; }
-        .auth-title { font-size: 20px; font-weight: bold; color: #0084ff; margin-bottom: 15px; }
-        .auth-input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 13px; }
-        .auth-btn { width: 100%; padding: 10px; background: #0084ff; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .auth-toggle { margin-top: 12px; color: #555; font-size: 12px; cursor: pointer; text-decoration: underline; }
+        /* Main App Interface */
+        #app-container { display: none; height: 100vh; flex-direction: column; }
+        .navbar { background: #4fae61; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .logout-btn { background: #ff3b30; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+
+        /* User List Screen */
+        #user-screen { flex: 1; display: flex; flex-direction: column; background: white; }
+        .screen-title { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #ddd; font-size: 16px; color: #555; }
+        .user-list { list-style: none; overflow-y: auto; flex: 1; }
+        .user-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; cursor: pointer; transition: 0.2s; }
+        .user-item:hover { background: #f0f2f5; }
+        .user-avatar { width: 45px; height: 45px; background: #0084ff; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; font-size: 18px; }
+
+        /* Chat Screen */
+        #chat-screen { flex: 1; display: none; flex-direction: column; background: #efeae2; }
+        .chat-header { background: #4fae61; color: white; padding: 12px; display: flex; align-items: center; }
+        .back-btn { background: none; border: none; color: white; font-size: 20px; margin-right: 15px; cursor: pointer; font-weight: bold; }
+        .messages-container { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; }
         
-        .avatar-picker { width: 75px; height: 75px; border-radius: 50%; background: #e4e6eb; margin: 0 auto 12px auto; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 2px dashed #0084ff; overflow: hidden; }
-        .avatar-picker img { width: 100%; height: 100%; object-fit: cover; }
+        /* Message Bubbles */
+        .msg { max-width: 75%; padding: 10px 14px; margin-bottom: 8px; border-radius: 10px; font-size: 15px; word-wrap: break-word; line-height: 1.4; }
+        .msg.sent { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .msg.received { background: white; align-self: flex-start; border-top-left-radius: 0; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
 
-        .chat-header { background: var(--header-bg); color: var(--header-text); padding: 6px 10px; font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; height: 44px; box-sizing: border-box; flex-shrink: 0; z-index: 6; }
-        .header-buttons { display: flex; gap: 8px; align-items: center; }
-        .call-btn { background: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        .logout-btn { background: #ff3b30; color: white; border: none; padding: 5px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
-        
-        .load-more-container { width: 100%; text-align: center; padding: 4px 0; background: transparent; flex-shrink: 0; }
-        .load-more-btn { background: rgba(0,0,0,0.06); border: none; padding: 4px 12px; border-radius: 12px; font-size: 11px; color: #444; cursor: pointer; font-weight: bold; }
-
-        .chat-messages { flex: 1; padding: 8px; overflow-y: auto; background: var(--chat-wall); display: flex; flex-direction: column; gap: 8px; box-sizing: border-box; }
-        
-        .message-row { display: flex; align-items: flex-end; gap: 6px; max-width: 85%; }
-        .message-row.sent { align-self: flex-end; flex-direction: row-reverse; }
-        .message-row.received { align-self: start; }
-        .user-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: #ccc; }
-        
-        .avatar-container { position: relative; display: inline-block; flex-shrink: 0; }
-
-        .msg-content-wrapper { display: flex; flex-direction: column; max-width: 100%; }
-        .message-row.sent .msg-content-wrapper { align-items: flex-end; }
-        .name-tag { font-size: 10px; color: #65676b; margin-bottom: 1px; font-weight: 600; }
-
-        .msg { padding: 6px 10px; border-radius: 14px; word-wrap: break-word; font-size: 13px; line-height: 1.3; max-width: 100%; box-sizing: border-box; }
-        .message-row.received .msg { background: var(--received-msg); color: var(--received-text); border-bottom-left-radius: 4px; }
-        .message-row.sent .msg { background: var(--sent-msg); color: var(--sent-text); border-bottom-right-radius: 4px; }
-        
-        audio { max-width: 100%; width: 170px; height: 30px; margin-top: 2px; display: block; }
-        .chat-img { max-width: 100%; max-height: 160px; border-radius: 10px; margin-top: 2px; display: block; }
-
-        .chat-input-area { display: flex; padding: 5px 8px; background: var(--container-bg); border-top: 1px solid rgba(0,0,0,0.06); align-items: center; gap: 4px; height: 46px; box-sizing: border-box; flex-shrink: 0; }
-        .chat-input { flex: 1; padding: 4px 10px; border: 1px solid #e4e6eb; border-radius: 20px; outline: none; background: var(--bg-color); color: var(--received-text); font-size: 13px; height: 32px; box-sizing: border-box; }
-        .send-btn, .mic-btn, .image-btn { background: var(--header-bg); color: var(--header-text); border: none; padding: 0; border-radius: 50%; cursor: pointer; width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
-        
-        .ai-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; padding: 20px; text-align: center; box-sizing: border-box; }
-        .ai-start-btn { background: linear-gradient(135deg, #00f2fe, #4facfe); border: none; padding: 12px 24px; color: white; font-size: 16px; font-weight: bold; border-radius: 30px; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,242,254,0.4); }
-
-        .call-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: #1c1c1e; z-index: 998; display: none; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center; }
-        .call-status { font-size: 18px; margin-top: 15px; color: #a2a2a7; }
-        .call-actions { display: flex; gap: 20px; margin-top: 40px; }
-        .call-action-btn { border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; font-size: 14px; cursor: pointer; color: white; }
-        .btn-accept { background: #34c759; }
-        .btn-decline { background: #ff3b30; }
-
-        #fileInput, #avatarInput { display: none; }
+        /* Input Area */
+        .input-area { background: #f0f2f5; padding: 10px; display: flex; align-items: center; border-top: 1px solid #ddd; }
+        .input-area input { flex: 1; padding: 12px; border: none; border-radius: 20px; background: white; font-size: 15px; outline: none; padding-left: 15px; }
+        .send-btn { background: #4fae61; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; margin-left: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
     </style>
 </head>
 <body>
 
-<div class="ai-overlay" id="aiActivationOverlay">
-    <span style="font-size: 40px;">🤖</span>
-    <h3 style="margin: 10px 0;">এআই অ্যাসিস্ট্যান্ট</h3>
-    <p style="font-size: 13px; color: #ccc; margin: 0 10px;">ব্রাউজারের সিকিউরিটি লক খুলে মেসেজ ভয়েসে শোনার জন্য নিচের বাটনে চাপ দিন ভাই।</p>
-    <button class="ai-start-btn" onclick="unlockAiSystem()">এআই ভয়েস চালু করুন 🔊</button>
-</div>
-
-<div class="call-overlay" id="callOverlay">
-    <div style="font-size: 60px; animation: pulse 1.5s infinite;">📞</div>
-    <h2 id="callUserTitle" style="margin: 15px 0 5px 0;">বন্ধুর কল</h2>
-    <div class="call-status" id="callStatusText">কল আসছে...</div>
-    <div class="call-actions">
-        <button class="call-action-btn btn-accept" id="acceptCallBtn" onclick="acceptIncomingCall()">কল ধরুন</button>
-        <button class="call-action-btn btn-decline" onclick="endAudioCall()">কেটে দিন</button>
-    </div>
-</div>
-
-<div class="chat-container">
-    <div class="auth-screen" id="authScreen">
-        <div class="auth-box" id="loginBox">
-            <div class="auth-title">🔐 চ্যাট রুমে লগইন করুন</div>
-            <input type="text" id="loginUser" class="auth-input" placeholder="ইউজার আইডি (ছোট অক্ষরে)">
-            <input type="password" id="loginPass" class="auth-input" placeholder="পাসওয়ার্ড লিখুন">
-            <button class="auth-btn" onclick="login()">ভেটারে প্রবেশ করুন</button>
-            <div class="auth-toggle" onclick="toggleAuth(false)">নতুন অ্যাকাউন্ট তৈরি করতে এখানে চাপুন</div>
+    <div id="auth-container">
+        <div class="logo-box">
+            <h2>Life Messenger</h2>
+            <p style="margin-top: 5px; color: #666;">মোবাইল নাম্বার দিয়ে লগইন করুন</p>
         </div>
         
-        <div class="auth-box" id="signupBox" style="display: none;">
-            <div class="auth-title">👤 নতুন অ্যাকাউন্ট খুলুন</div>
-            <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(this)">
-            <div class="avatar-picker" onclick="document.getElementById('avatarInput').click()" id="avatarPreviewBox">
-                <span style="font-size:12px; color:#0084ff;">📸 ছবি দিন</span>
+        <div id="phone-input-sec" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="input-group">
+                <input type="text" id="user-profile-name" placeholder="আপনার নাম লিখুন">
             </div>
-            <input type="text" id="signupName" class="auth-input" placeholder="আপনার আসল নাম">
-            <input type="text" id="signupUser" class="auth-input" placeholder="ইউজার আইডি (যেমন: ibrahim)">
-            <input type="password" id="signupPass" class="auth-input" placeholder="পাসওয়ার্ড দিন">
-            <button class="auth-btn" onclick="signup()">অ্যাকাউন্ট নিশ্চিত করুন</button>
-            <div class="auth-toggle" onclick="toggleAuth(true)">ইতিমধ্যে অ্যাকাউন্ট থাকলে লগইন করুন</div>
+            <div class="input-group">
+                <input type="text" id="phone-number" placeholder="কোডসহ নাম্বার দিন (যেমন: +88017XXXXXXXX)">
+            </div>
+            <div id="recaptcha-container"></div>
+            <button class="auth-btn" onclick="sendOTPCode()">ওটিপি (OTP) পাঠান</button>
+        </div>
+
+        <div id="otp-input-sec" style="width: 100%; display: none; flex-direction: column; align-items: center;">
+            <div class="input-group">
+                <input type="text" id="otp-code" placeholder="৬ ডিজিটের ওটিপি কোড দিন">
+            </div>
+            <button class="auth-btn" style="background: #4fae61;" onclick="verifyOTPCode()">ভেরিফাই ও লগইন</button>
         </div>
     </div>
 
-    <div class="chat-header">
-        <span id="roomTitle">💬 চ্যাট রুম</span>
-        <div class="header-buttons">
-            <button class="call-btn" onclick="startAudioCall()">📞 কল দিন</button>
+    <div id="app-container">
+        <div class="navbar">
+            <span id="user-display-name">Life Messenger</span>
             <button class="logout-btn" onclick="logout()">লগআউট</button>
         </div>
+
+        <div id="user-screen">
+            <div class="screen-title">যার সাথে কথা বলতে চান তার মোবাইল নাম্বারের ওপর ক্লিক করুন:</div>
+            <ul class="user-list" id="users-list-ui"></ul>
+        </div>
+
+        <div id="chat-screen">
+            <div class="chat-header">
+                <button class="back-btn" onclick="backToUserList()">←</button>
+                <span id="chatting-with-name" style="font-weight: bold; font-size: 17px;">ইউজার</span>
+            </div>
+            <div class="messages-container" id="messages-box"></div>
+            <div class="input-area">
+                <input type="text" id="message-input" placeholder="মেসেজ লিখুন...">
+                <button class="send-btn" onclick="sendMessage()">➔</button>
+            </div>
+        </div>
     </div>
 
-    <div class="load-more-container">
-        <button class="load-more-btn" onclick="loadMoreMessages()">旧 পুরনো মেসেজ লোড করুন</button>
-    </div>
-    
-    <div class="chat-messages" id="msgBox"></div>
-    
-    <div class="chat-input-area">
-        <input type="file" id="fileInput" accept="image/*" onchange="sendImage(this)">
-        <button class="image-btn" onclick="document.getElementById('fileInput').click()">🖼️</button>
-        <input type="text" class="chat-input" id="textInput" placeholder="মেসেজ লিখুন...">
-        <button class="send-btn" onclick="sendMsg()">➔</button>
-        <button class="mic-btn" id="micBtn" onclick="toggleRecording()">🎤</button>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.18.0.js"></script>
-
-<script>
-    // ─── ফায়ারবেজ কনফিগ (সংশোধিত এবং সুরক্ষিত লিঙ্কসহ) ───
-    const firebaseConfig = {
-        apiKey: "AIzaSyDbpbfLrMUXoFjhUC37l",
-        authDomain: "eibrahim-a67a6.firebaseapp.com",
-        databaseURL: "https://eibrahim-a67a6-default-rtdb.firebaseio.com", // লিঙ্কটি http থেকে https করা হয়েছে
-        projectId: "eibrahim-a67a6",
-        storageBucket: "eibrahim-a67a6.appspot.com",
-        messagingSenderId: "519997364197",
-        appId: "1:519997364197:web:35e7720"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    const AGORA_APP_ID = "216f9f740da44e0eb86db893df1ecf42"; 
-    const CHANNEL_NAME = "chat_room";
-
-    let currentUser = null;
-    let mediaRecorder;
-    let audioChunks = [];
-    let isRecording = false;
-    let selectedAvatarBase64 = "";
-    let currentLimit = 30;
-    let isInitialLoad = true;
-    let isVoiceReady = false;
-    let currentMsgRef = null;
-
-    let agoraClient = null;
-    let localAudioTrack = null;
-
-    window.onload = function() {
-        const savedUser = localStorage.getItem("chat_user");
-        if(savedUser) {
-            currentUser = JSON.parse(savedUser);
-            document.getElementById('authScreen').style.display = 'none';
-            document.getElementById('roomTitle').innerText = `💬 ${currentUser.name}`;
-            startChatSystem();
-        }
-    };
-
-    function unlockAiSystem() {
-        isVoiceReady = true;
-        document.getElementById('aiActivationOverlay').style.display = 'none';
-        speakText("হ্যালো ইব্রাহিম ভাই! ভয়েস সিস্টেম রেডি।");
-        initAgora();
-    }
-
-    function speakText(text) {
-        if ('speechSynthesis' in window && isVoiceReady) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'bn-BD';
-            utterance.rate = 1.0;
-            window.speechSynthesis.speak(utterance);
-        }
-    }
-
-    function initAgora() {
-        agoraClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+    <script>
+        // ইব্রাহিম ভাই, আপনার ফায়ারবেস চাবি নিচে সেট করা রয়েছে
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbpbflrM-YV4u57u_66X3h9bS8Y6jSg0k",
+            authDomain: "eibrahim-a67a6.firebaseapp.com",
+            databaseURL: "https://eibrahim-a67a6-default-rtdb.firebaseio.com",
+            projectId: "eibrahim-a67a6",
+            storageBucket: "eibrahim-a67a6.appspot.com",
+            messagingSenderId: "519997364197",
+            appId: "1:519997364197:web:b7e52254acf44de9207e410c",
+            measurementId: "G-38KBH96ZZE"
+        };
         
-        agoraClient.on("user-published", async (user, mediaType) => {
-            await agoraClient.subscribe(user, mediaType);
-            if (mediaType === "audio") {
-                user.audioTrack.play();
-                document.getElementById("callStatusText").innerText = "কথা বলুন (Connected) 🔊";
-            }
-        });
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
 
-        agoraClient.on("user-unpublished", (user) => {
-            endAudioCall();
-        });
+        let currentUser = null;
+        let activeChatUserId = null;
+        let chatRef = null;
+        let confirmationResultObj = null;
 
-        listenCallSignals();
-    }
-
-    function listenCallSignals() {
-        database.ref("current_call").on("value", function(snapshot) {
-            const callData = snapshot.val();
-            if (callData && callData.status === "calling" && callData.callerId !== currentUser.username) {
-                document.getElementById("callOverlay").style.display = "flex";
-                document.getElementById("callUserTitle").innerText = callData.callerName;
-                document.getElementById("callStatusText").innerText = "আপনাকে অডিও কল দিচ্ছে...";
-                document.getElementById("acceptCallBtn").style.display = "inline-block";
-                speakText(callData.callerName + " আপনাকে কল দিচ্ছে ভাই।");
-            } else if (!callData && document.getElementById("callOverlay").style.display === "flex") {
-                closeCallOverlay();
-            }
-        });
-    }
-
-    async function startAudioCall() {
-        if (!currentUser) return;
-        document.getElementById("callOverlay").style.display = "flex";
-        document.getElementById("callUserTitle").innerText = "কল হচ্ছে...";
-        document.getElementById("callStatusText").innerText = "রিং হচ্ছে, অপেক্ষা করুন...";
-        document.getElementById("acceptCallBtn").style.display = "none";
-
-        database.ref("current_call").set({
-            callerId: currentUser.username,
-            callerName: currentUser.name,
-            status: "calling"
-        });
-
-        try {
-            await agoraClient.join(AGORA_APP_ID, CHANNEL_NAME, null, Math.floor(Math.random() * 10000));
-            localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-            await agoraClient.publish([localAudioTrack]);
-            document.getElementById("callStatusText").innerText = "রিং হচ্ছে...";
-        } catch (err) {
-            console.error(err);
-            alert("মাইক্রোফোন বা কানেকশন সমস্যা! অনুগ্রহ করে আপনার অ্যাগোরা প্রজেক্টে টোকেন অফ (Testing Mode) করে দিন ভাই।");
-            endAudioCall();
-        }
-    }
-
-    async function acceptIncomingCall() {
-        document.getElementById("callStatusText").innerText = "কানেক্ট হচ্ছে...";
-        document.getElementById("acceptCallBtn").style.display = "none";
-
-        try {
-            await agoraClient.join(AGORA_APP_ID, CHANNEL_NAME, null, Math.floor(Math.random() * 10000));
-            localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
-            await agoraClient.publish([localAudioTrack]);
-            document.getElementById("callStatusText").innerText = "কথা বলুন (Connected) 🔊";
-        } catch (err) {
-            alert("কল রিসিভ করা যায়নি!");
-            endAudioCall();
-        }
-    }
-
-    async function endAudioCall() {
-        if (localAudioTrack) {
-            localAudioTrack.stop();
-            localAudioTrack.close();
-            localAudioTrack = null;
-        }
-        if (agoraClient) {
-            await agoraClient.leave();
-        }
-        database.ref("current_call").remove();
-        closeCallOverlay();
-    }
-
-    function closeCallOverlay() {
-        document.getElementById("callOverlay").style.display = "none";
-        window.speechSynthesis.cancel();
-    }
-
-    function toggleAuth(showLogin) {
-        document.getElementById('loginBox').style.display = showLogin ? 'block' : 'none';
-        document.getElementById('signupBox').style.display = showLogin ? 'none' : 'block';
-    }
-
-    function previewAvatar(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                selectedAvatarBase64 = e.target.result;
-                document.getElementById('avatarPreviewBox').innerHTML = `<img src="${selectedAvatarBase64}" style="width:100%;height:100%;object-fit:cover;" />`;
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function signup() {
-        const name = document.getElementById('signupName').value.trim();
-        const username = document.getElementById('signupUser').value.trim().toLowerCase();
-        const pass = document.getElementById('signupPass').value.trim();
-
-        if(!name || !username || !pass || !selectedAvatarBase64) { alert("সব তথ্য সঠিকভাবে দিন ভাই!"); return; }
-
-        database.ref("users").child(username).once("value", function(snapshot) {
-            if(snapshot.exists()) { alert("এই আইডিটি ইতিমধ্যে রেজিস্টার্ড!"); }
-            else {
-                database.ref("users").child(username).set({ "name": name, "password": pass, "avatar": selectedAvatarBase64 }, function(error) {
-                    if(!error) { alert("অ্যাকাউন্ট তৈরি সফল! লগইন করুন।"); toggleAuth(true); }
-                });
-            }
-        });
-    }
-
-    function login() {
-        const username = document.getElementById('loginUser').value.trim().toLowerCase();
-        const pass = document.getElementById('loginPass').value.trim();
-
-        if(!username || !pass) { alert("আইডি ও পাসওয়ার্ড দিন!"); return; }
-
-        database.ref("users").child(username).once("value", function(snapshot) {
-            if(snapshot.exists() && snapshot.val().password === pass) {
-                currentUser = { "username": username, "name": snapshot.val().name, "avatar": snapshot.val().avatar };
-                localStorage.setItem("chat_user", JSON.stringify(currentUser));
-                document.getElementById('authScreen').style.display = 'none';
-                document.getElementById('roomTitle').innerText = `💬 ${currentUser.name}`;
-                startChatSystem();
-            } else { alert("ভুল পাসওয়ার্ড বা আইডি!"); }
-        });
-    }
-
-    function logout() {
-        localStorage.removeItem("chat_user");
-        location.reload();
-    }
-
-    function startChatSystem() {
-        listenMessages();
-    }
-
-    function listenMessages() {
-        const msgBox = document.getElementById('msgBox');
-        msgBox.innerHTML = "";
-        isInitialLoad = true;
-
-        if (currentMsgRef) { currentMsgRef.off(); }
-
-        currentMsgRef = database.ref("messages").orderByChild("timestamp").limitToLast(currentLimit);
-        
-        currentMsgRef.once("value", function() {
-            setTimeout(() => { isInitialLoad = false; }, 1200);
-        });
-
-        currentMsgRef.on("child_added", function(snapshot) {
-            const data = snapshot.val();
-            if(!currentUser || !data) return;
-
-            const msgRow = document.createElement('div');
-            msgRow.className = (data.senderId === currentUser.username) ? "message-row sent" : "message-row received";
-
-            const senderAvatar = data.avatar || "https://www.w3schools.com/howto/img_avatar.png";
-            const senderName = data.senderName || "ইউজার";
-
-            let contentHtml = "";
-            let speechContent = "একটি মেসেজ পাঠিয়েছেন";
-
-            if(data.type === "image") {
-                contentHtml = `<img src="${data.message}" class="chat-img" />`;
-                speechContent = "একটি ছবি পাঠিয়েছেন";
-            } else if(data.type === "audio") {
-                contentHtml = `<audio src="${data.message}" controls preload="none"></audio>`;
-                speechContent = "একটি ভয়েস মেসেজ পাঠিয়েছেন";
-            } else {
-                contentHtml = data.message;
-                speechContent = "বলছেন: " + data.message;
-            }
-
-            msgRow.innerHTML = `
-                <div class="avatar-container"><img src="${senderAvatar}" class="user-avatar" /></div>
-                <div class="msg-content-wrapper">
-                    <span class="name-tag">${data.senderId === currentUser.username ? 'আপনি' : senderName}</span>
-                    <div class="msg">${contentHtml}</div>
-                </div>
-            `;
-
-            msgBox.appendChild(msgRow);
-            msgBox.scrollTop = msgBox.scrollHeight;
-
-            if(!isInitialLoad && data.senderId !== currentUser.username) {
-                speakText(senderName + " " + speechContent);
-            }
-        });
-    }
-
-    function loadMoreMessages() {
-        currentLimit += 20;
-        listenMessages();
-    }
-
-    function sendMsg() {
-        const textInput = document.getElementById('textInput');
-        const message = textInput.value.trim();
-        if(message !== "" && currentUser) {
-            database.ref("messages").push().set({
-                "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": message, "type": "text", "timestamp": Date.now()
+        // রোবট ভেরিফিকেশন লোড করা
+        window.onload = function() {
+            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+                'size': 'invisible'
             });
-            textInput.value = "";
-        }
-    }
+        };
 
-    function sendImage(input) {
-        if (input.files && input.files[0] && currentUser) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                database.ref("messages").push().set({
-                    "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": e.target.result, "type": "image", "timestamp": Date.now()
+        // ইউজার লগইন অবস্থা চেক
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                
+                // নাম ডাটাবেজে সেভ করা (যদি থাকে)
+                let savedName = localStorage.getItem('temp_name') || user.phoneNumber;
+                document.getElementById('user-display-name').innerText = savedName;
+                
+                database.ref('users/' + user.uid).set({
+                    uid: user.uid,
+                    name: savedName,
+                    phone: user.phoneNumber
                 });
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
 
-    async function toggleRecording() {
-        const micBtn = document.getElementById('micBtn');
-        if (!isRecording) {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-                    const reader = new FileReader();
-                    reader.readAsDataURL(audioBlob);
-                    reader.onloadend = () => {
-                        if(currentUser) {
-                            database.ref("messages").push().set({
-                                "senderId": currentUser.username, "senderName": currentUser.name, "avatar": currentUser.avatar, "message": reader.result, "type": "audio", "timestamp": Date.now()
-                            });
-                        }
-                    };
-                };
-                mediaRecorder.start(); isRecording = true; micBtn.innerText = "🛑";
-            } catch (err) { alert("মাইক্রোফোন অন করার পারমিশন দিন ভাই!"); }
-        } else {
-            mediaRecorder.stop(); isRecording = false; micBtn.innerText = "🎤";
-        }
-    }
-</script>
+                loadUserList();
+            } else {
+                document.getElementById('auth-container').style.display = 'flex';
+                document.getElementById('app-container').style.display = 'none';
+            }
+        });
 
+        // ওটিপি কোড পাঠানো
+        function sendOTPCode() {
+            const name = document.getElementById('user-profile-name').value.trim();
+            const phone = document.getElementById('phone-number').value.trim();
+
+            if (!name || !phone) {
+                alert("দয়া করে নাম এবং দেশের কোডসহ মোবাইল নাম্বার (+88017...) দিন ভাই।");
+                return;
+            }
+
+            localStorage.setItem('temp_name', name);
+            const appVerifier = window.recaptchaVerifier;
+
+            auth.signInWithPhoneNumber(phone, appVerifier)
+                .then((confirmationResult) => {
+                    confirmationResultObj = confirmationResult;
+                    document.getElementById('phone-input-sec').style.display = 'none';
+                    document.getElementById('otp-input-sec').style.display = 'flex';
+                    alert("আপনার মোবাইলে একটি ওটিপি কোড পাঠানো হয়েছে ভাই।");
+                }).catch((error) => {
+                    alert("কোড পাঠানো যায়নি: " + error.message);
+                });
+        }
+
+        // ওটিপি কোড যাচাই ও লগইন
+        function verifyOTPCode() {
+            const code = document.getElementById('otp-code').value.trim();
+            if (!code) { alert("কোডটি সঠিকভাবে লিখুন ভাই।"); return; }
+
+            confirmationResultObj.confirm(code).then((result) => {
+                // সফলভাবে লগইন হয়েছে
+            }).catch((error) => {
+                alert("ভুল ওটিপি কোড! আবার চেষ্টা করুন।");
+            });
+        }
+
+        // ইউজার তালিকা লোড করা
+        function loadUserList() {
+            database.ref('users').on('value', snapshot => {
+                const usersListUI = document.getElementById('users-list-ui');
+                usersListUI.innerHTML = '';
+                snapshot.forEach(childSnapshot => {
+                    const userData = childSnapshot.val();
+                    if (userData.uid !== currentUser.uid) {
+                        const li = document.createElement('li');
+                        li.className = 'user-item';
+                        li.onclick = () => openChatBox(userData.uid, userData.name);
+                        
+                        const firstLetter = userData.name.charAt(0).toUpperCase();
+                        li.innerHTML = `
+                            <div class="user-avatar">${firstLetter}</div>
+                            <div>
+                                <div style="font-weight: bold; font-size: 16px; color: #333;">${userData.name}</div>
+                                <div style="font-size: 12px; color: #777;">${userData.phone}</div>
+                            </div>
+                        `;
+                        usersListUI.appendChild(li);
+                    }
+                });
+            });
+        }
+
+        // চ্যাট বক্স ওপেন করা
+        function openChatBox(targetUid, targetName) {
+            activeChatUserId = targetUid;
+            document.getElementById('user-screen').style.display = 'none';
+            document.getElementById('chat-screen').style.display = 'flex';
+            document.getElementById('chatting-with-name').innerText = targetName;
+            
+            const chatRoomId = currentUser.uid < targetUid ? currentUser.uid + "_" + targetUid : targetUid + "_" + currentUser.uid;
+            
+            if (chatRef) chatRef.off();
+            document.getElementById('messages-box').innerHTML = '';
+            chatRef = database.ref('messages/' + chatRoomId);
+            
+            chatRef.on('child_added', snapshot => {
+                const messageData = snapshot.val();
+                const messagesBox = document.getElementById('messages-box');
+                const msgDiv = document.createElement('div');
+                
+                msgDiv.className = (messageData.senderId === currentUser.uid) ? 'msg sent' : 'msg received';
+                msgDiv.innerText = messageData.text;
+                messagesBox.appendChild(msgDiv);
+                messagesBox.scrollTop = messagesBox.scrollHeight;
+            });
+        }
+
+        // মেসেজ পাঠানো
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const messageText = input.value.trim();
+            if (!messageText || !activeChatUserId) return;
+
+            const chatRoomId = currentUser.uid < activeChatUserId ? currentUser.uid + "_" + activeChatUserId : activeChatUserId + "_" + currentUser.uid;
+            
+            database.ref('messages/' + chatRoomId).push({
+                senderId: currentUser.uid,
+                receiverId: activeChatUserId,
+                text: messageText,
+                timestamp: Date.now()
+            });
+
+            input.value = '';
+        }
+
+        function backToUserList() {
+            document.getElementById('chat-screen').style.display = 'none';
+            document.getElementById('user-screen').style.display = 'flex';
+            if (chatRef) chatRef.off();
+        }
+
+        function logout() {
+            auth.signOut();
+            localStorage.removeItem('temp_name');
+        }
+    </script>
 </body>
 </html>
