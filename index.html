@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Life Messenger</title>
+    <!-- Firebase SDK (Version 8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -54,6 +55,7 @@
 </head>
 <body>
 
+    <!-- ১. লগইন স্ক্রিন -->
     <div id="auth-container">
         <div class="logo-area">
             <h2>Life Messenger</h2>
@@ -68,6 +70,7 @@
                 <input type="text" id="input-phone" placeholder="যেমন: +88017XXXXXXXX">
             </div>
             
+            <!-- অদৃশ্য রিক্যাপচা ধারক -->
             <div id="recaptcha-invisible-box"></div>
             
             <button class="btn-action" id="btn-send-otp" onclick="startOTPProcess()">ওটিপি (OTP) পাঠান</button>
@@ -81,6 +84,7 @@
         </div>
     </div>
 
+    <!-- ২. মূল চ্যাট স্ক্রিন -->
     <div id="app-container">
         <div class="top-bar">
             <span id="my-profile-name">Life Messenger</span>
@@ -108,11 +112,11 @@
     <script>
         // ইব্রাহিম ভাইয়ের প্রজেক্টের ১০০% সঠিক ও আসল কনফিগারেশন চাবি
         const firebaseConfig = {
-            apiKey: "AIzaSyC2N_xN-K_rTzLp_K1b8XmZ7yV7qN5w_G4",
+            apiKey: "AIzaSyDbpbflrMUXoFjhUC37kYSzO3hoy5G9o58",
             authDomain: "eibrahim-a67a6.firebaseapp.com",
             databaseURL: "https://eibrahim-a67a6-default-rtdb.firebaseio.com",
             projectId: "eibrahim-a67a6",
-            storageBucket: "eibrahim-a67a6.appspot.com",
+            storageBucket: "eibrahim-a67a6.firebasestorage.app",
             messagingSenderId: "519997364197",
             appId: "1:519997364197:web:b7e522546acfe9207e410c"
         };
