@@ -3,107 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life Messenger - Smooth Login</title>
+    <title>Life Messenger</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f0f2f5; height: 100vh; display: flex; flex-direction: column; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background-color: #f4f6f9; height: 100vh; display: flex; flex-direction: column; }
         
-        /* Auth Screen */
-        #auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; background: white; }
-        .logo-box { text-align: center; margin-bottom: 30px; }
-        .logo-box h2 { color: #4fae61; margin-top: 10px; }
-        .input-group { width: 100%; max-width: 350px; margin-bottom: 15px; }
-        .input-group input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
-        .auth-btn { width: 100%; max-width: 350px; padding: 12px; background: #0084ff; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        /* Login Screen */
+        #auth-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; background: #ffffff; }
+        .logo-area { text-align: center; margin-bottom: 25px; }
+        .logo-area h2 { color: #00a884; font-size: 28px; }
+        .logo-area p { color: #666; font-size: 14px; margin-top: 5px; }
+        .input-box { width: 100%; max-width: 340px; margin-bottom: 15px; }
+        .input-box input { width: 100%; padding: 12px 15px; border: 1px solid #ccc; border-radius: 20px; font-size: 16px; outline: none; }
+        .btn-action { width: 100%; max-width: 340px; padding: 12px; background: #00a884; color: white; border: none; border-radius: 20px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .btn-action:disabled { background: #cccccc; cursor: not-allowed; }
         
-        /* Main App Interface */
+        /* Chat Main Screen */
         #app-container { display: none; height: 100vh; flex-direction: column; }
-        .navbar { background: #4fae61; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        .logout-btn { background: #ff3b30; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+        .top-bar { background: #00a884; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .btn-logout { background: #d93025; color: white; border: none; padding: 8px 15px; border-radius: 15px; cursor: pointer; font-size: 13px; }
 
-        /* User List Screen */
-        #user-screen { flex: 1; display: flex; flex-direction: column; background: white; }
-        .screen-title { padding: 15px; background: #f8f9fa; border-bottom: 1px solid #ddd; font-size: 16px; color: #555; }
-        .user-list { list-style: none; overflow-y: auto; flex: 1; }
-        .user-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; cursor: pointer; transition: 0.2s; }
-        .user-item:hover { background: #f0f2f5; }
-        .user-avatar { width: 45px; height: 45px; background: #0084ff; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; font-size: 18px; }
+        /* User List */
+        #user-list-screen { flex: 1; display: flex; flex-direction: column; background: white; }
+        .list-header { padding: 12px 15px; background: #f0f2f5; font-size: 14px; color: #555; font-weight: bold; }
+        .users-holder { list-style: none; overflow-y: auto; flex: 1; }
+        .user-card { padding: 15px; border-bottom: 1px solid #f0f2f5; display: flex; align-items: center; cursor: pointer; }
+        .user-card:hover { background: #f9f9f9; }
+        .avatar { width: 45px; height: 45px; background: #00a884; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; font-size: 18px; }
 
-        /* Chat Screen */
+        /* Personal Chat Screen */
         #chat-screen { flex: 1; display: none; flex-direction: column; background: #efeae2; }
-        .chat-header { background: #4fae61; color: white; padding: 12px; display: flex; align-items: center; }
-        .back-btn { background: none; border: none; color: white; font-size: 20px; margin-right: 15px; cursor: pointer; font-weight: bold; }
-        .messages-container { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; }
+        .chat-header { background: #00a884; color: white; padding: 12px 15px; display: flex; align-items: center; }
+        .btn-back { background: none; border: none; color: white; font-size: 22px; margin-right: 15px; cursor: pointer; }
+        .msg-area { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; }
         
         /* Message Bubbles */
-        .msg { max-width: 75%; padding: 10px 14px; margin-bottom: 8px; border-radius: 10px; font-size: 15px; word-wrap: break-word; line-height: 1.4; }
-        .msg.sent { background: #d9fdd3; align-self: flex-end; border-top-right-radius: 0; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
-        .msg.received { background: white; align-self: flex-start; border-top-left-radius: 0; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .bubble { max-width: 75%; padding: 8px 14px; margin-bottom: 5px; border-radius: 8px; font-size: 15px; word-wrap: break-word; }
+        .bubble.me { background: #d9fdd3; align-self: flex-end; }
+        .bubble.other { background: #ffffff; align-self: flex-start; border: 1px solid #e1e1e1; }
 
-        /* Input Area */
-        .input-area { background: #f0f2f5; padding: 10px; display: flex; align-items: center; border-top: 1px solid #ddd; }
-        .input-area input { flex: 1; padding: 12px; border: none; border-radius: 20px; background: white; font-size: 15px; outline: none; padding-left: 15px; }
-        .send-btn { background: #4fae61; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; margin-left: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        /* Type Area */
+        .type-area { background: #f0f2f5; padding: 10px; display: flex; align-items: center; }
+        .type-area input { flex: 1; padding: 12px; border: none; border-radius: 25px; background: white; font-size: 15px; outline: none; padding-left: 15px; }
+        .btn-send { background: #00a884; color: white; border: none; width: 42px; height: 42px; border-radius: 50%; margin-left: 10px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
     <div id="auth-container">
-        <div class="logo-box">
+        <div class="logo-area">
             <h2>Life Messenger</h2>
-            <p style="margin-top: 5px; color: #666;">মোবাইল নাম্বার দিয়ে লগইন করুন</p>
+            <p>আপনার অ্যাকাউন্ট ভেরিফাই করুন</p>
         </div>
         
-        <div id="phone-input-sec" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-            <div class="input-group">
-                <input type="text" id="user-profile-name" placeholder="আপনার নাম লিখুন">
+        <div id="step-phone" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="input-box">
+                <input type="text" id="input-name" placeholder="আপনার নাম লিখুন">
             </div>
-            <div class="input-group">
-                <input type="text" id="phone-number" placeholder="কোডসহ নাম্বার দিন (যেমন: +88017XXXXXXXX)">
+            <div class="input-box">
+                <input type="text" id="input-phone" placeholder="যেমন: +88017XXXXXXXX">
             </div>
             
-            <div id="invisible-recaptcha"></div>
+            <div id="recaptcha-invisible-box"></div>
             
-            <button class="auth-btn" id="send-otp-btn" onclick="sendOTPCode()">ওটিপি (OTP) পাঠান</button>
+            <button class="btn-action" id="btn-send-otp" onclick="startOTPProcess()">ওটিপি (OTP) পাঠান</button>
         </div>
 
-        <div id="otp-input-sec" style="width: 100%; display: none; flex-direction: column; align-items: center;">
-            <div class="input-group">
-                <input type="text" id="otp-code" placeholder="৬ ডিজিটের ওটিপি কোড দিন">
+        <div id="step-otp" style="width: 100%; display: none; flex-direction: column; align-items: center;">
+            <div class="input-box">
+                <input type="text" id="input-otp" placeholder="৬ ডিজিটের কোডটি দিন">
             </div>
-            <button class="auth-btn" style="background: #4fae61;" onclick="verifyOTPCode()">ভেরিফাই ও লগইন</button>
+            <button class="btn-action" style="background: #00a884;" onclick="checkOTPProcess()">ভেরিফাই করুন</button>
         </div>
     </div>
 
     <div id="app-container">
-        <div class="navbar">
-            <span id="user-display-name">Life Messenger</span>
-            <button class="logout-btn" onclick="logout()">লগআউট</button>
+        <div class="top-bar">
+            <span id="my-profile-name">Life Messenger</span>
+            <button class="btn-logout" onclick="userLogout()">লগআউট</button>
         </div>
 
-        <div id="user-screen">
-            <div class="screen-title">যার সাথে কথা বলতে চান তার মোবাইল নাম্বারের ওপর ক্লিক করুন:</div>
-            <ul class="user-list" id="users-list-ui"></ul>
+        <div id="user-list-screen">
+            <div class="list-header">সবাইকে মেসেজ করুন:</div>
+            <ul class="users-holder" id="ui-users-list"></ul>
         </div>
 
         <div id="chat-screen">
             <div class="chat-header">
-                <button class="back-btn" onclick="backToUserList()">←</button>
-                <span id="chatting-with-name" style="font-weight: bold; font-size: 17px;">ইউজার</span>
+                <button class="btn-back" onclick="closeChatBox()">←</button>
+                <span id="chat-user-title" style="font-weight: bold;">ইউজার</span>
             </div>
-            <div class="messages-container" id="messages-box"></div>
-            <div class="input-area">
-                <input type="text" id="message-input" placeholder="মেসেজ লিখুন...">
-                <button class="send-btn" onclick="sendMessage()">➔</button>
+            <div class="msg-area" id="ui-msg-box"></div>
+            <div class="type-area">
+                <input type="text" id="msg-text-input" placeholder="মেসেজ লিখুন...">
+                <button class="btn-send" onclick="hitSendMessage()">➔</button>
             </div>
         </div>
     </div>
 
     <script>
+        // আপনার সঠিক ফায়ারবেস কনফিগারেশন
         const firebaseConfig = {
             apiKey: "AIzaSyDbpbflrMUXoFjhUC37kYSzO3hoy5G9o58",
             authDomain: "eibrahim-a67a6.firebaseapp.com",
@@ -119,162 +122,161 @@
         const auth = firebase.auth();
         const database = firebase.database();
 
-        let currentUser = null;
-        let activeChatUserId = null;
-        let chatRef = null;
-        let confirmationResultObj = null;
+        let activeUserObj = null;
+        let selectedChatId = null;
+        let currentChatDatabaseRef = null;
+        let firebaseConfirmationHolder = null;
 
-        // ছবি মেলানোর ঝামেলা বন্ধ করতে অদৃশ্য (Invisible) রিক্যাপচা সেটআপ
+        // অদৃশ্য ভেরিফায়ার সেটআপ (এটি স্ক্রিনে বাসের ছবি বা ক্যাপচা উইন্ডো আনা বন্ধ করবে)
         window.onload = function() {
-            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('invisible-recaptcha', {
+            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-invisible-box', {
                 'size': 'invisible',
                 'callback': function(response) {
-                    // ব্যাকগ্রাউন্ডে ভেরিফাই হলে স্বয়ংক্রিয় কাজ করবে
+                    // অটো ভেরিফাইড
                 }
             });
         };
 
         auth.onAuthStateChanged(user => {
             if (user) {
-                currentUser = user;
+                activeUserObj = user;
                 document.getElementById('auth-container').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
                 
-                let savedName = localStorage.getItem('temp_name') || user.phoneNumber;
-                document.getElementById('user-display-name').innerText = savedName;
+                let profileName = localStorage.getItem('local_name') || user.phoneNumber;
+                document.getElementById('my-profile-name').innerText = profileName;
                 
                 database.ref('users/' + user.uid).set({
                     uid: user.uid,
-                    name: savedName,
+                    name: profileName,
                     phone: user.phoneNumber
                 });
 
-                loadUserList();
+                fetchRegisteredUsers();
             } else {
                 document.getElementById('auth-container').style.display = 'flex';
                 document.getElementById('app-container').style.display = 'none';
             }
         });
 
-        function sendOTPCode() {
-            const name = document.getElementById('user-profile-name').value.trim();
-            const phone = document.getElementById('phone-number').value.trim();
+        function startOTPProcess() {
+            const userName = document.getElementById('input-name').value.trim();
+            const userPhone = document.getElementById('input-phone').value.trim();
 
-            if (!name || !phone) {
-                alert("দয়া করে নাম এবং দেশের কোডসহ মোবাইল নাম্বার দিন ভাই।");
+            if (!userName || !userPhone) {
+                alert("দয়া করে আপনার নাম এবং কোডসহ মোবাইল নাম্বার দিন ভাই।");
                 return;
             }
 
-            localStorage.setItem('temp_name', name);
-            const appVerifier = window.recaptchaVerifier;
+            localStorage.setItem('local_name', userName);
+            const hiddenVerifier = window.recaptchaVerifier;
 
-            const btn = document.getElementById('send-otp-btn');
-            btn.innerText = "অপেক্ষা করুন...";
-            btn.disabled = true;
+            const sendBtn = document.getElementById('btn-send-otp');
+            sendBtn.innerText = "কোড পাঠানো হচ্ছে...";
+            sendBtn.disabled = true;
 
-            auth.signInWithPhoneNumber(phone, appVerifier)
+            auth.signInWithPhoneNumber(userPhone, hiddenVerifier)
                 .then((confirmationResult) => {
-                    confirmationResultObj = confirmationResult;
-                    document.getElementById('phone-input-sec').style.display = 'none';
-                    document.getElementById('otp-input-sec').style.display = 'flex';
-                    alert("আপনার মোবাইলে ওটিপি কোড পাঠানো হয়েছে ভাই।");
-                }).catch((error) => {
-                    alert("কোড পাঠানো যায়নি: " + error.message);
-                    btn.innerText = "ওটিপি (OTP) পাঠান";
-                    btn.disabled = false;
-                    // কোনো কারণে ফেইল হলে রিক্যাপচা রিসেট করা
+                    firebaseConfirmationHolder = confirmationResult;
+                    document.getElementById('step-phone').style.display = 'none';
+                    document.getElementById('step-otp').style.display = 'flex';
+                    alert("আপনার সিমের নাম্বারে ওটিপি পাঠানো হয়েছে ভাই।");
+                }).catch((err) => {
+                    alert("সমস্যা হয়েছে: " + err.message);
+                    sendBtn.innerText = "ওটিপি (OTP) পাঠান";
+                    sendBtn.disabled = false;
                     window.recaptchaVerifier.render().then(function(widgetId) {
                         grecaptcha.reset(widgetId);
                     });
                 });
         }
 
-        function verifyOTPCode() {
-            const code = document.getElementById('otp-code').value.trim();
-            if (!code) { alert("কোডটি সঠিকভাবে লিখুন ভাই।"); return; }
+        function checkOTPProcess() {
+            const codeInput = document.getElementById('input-otp').value.trim();
+            if (!codeInput) { alert("৬ ডিজিটের কোডটি লিখুন।"); return; }
 
-            confirmationResultObj.confirm(code).then((result) => {
-                // সফল লগইন
-            }).catch((error) => {
-                alert("ভুল ওটিপি কোড! আবার চেষ্টা করুন।");
+            firebaseConfirmationHolder.confirm(codeInput).then((res) => {
+                // সফল লগইন স্বয়ংক্রিয় হ্যান্ডেল হবে
+            }).catch((err) => {
+                alert("ভুল কোড! দয়া করে সঠিক কোডটি দিন ভাই।");
             });
         }
 
-        function loadUserList() {
-            database.ref('users').on('value', snapshot => {
-                const usersListUI = document.getElementById('users-list-ui');
-                usersListUI.innerHTML = '';
-                snapshot.forEach(childSnapshot => {
-                    const userData = childSnapshot.val();
-                    if (userData.uid !== currentUser.uid) {
-                        const li = document.createElement('li');
-                        li.className = 'user-item';
-                        li.onclick = () => openChatBox(userData.uid, userData.name);
+        function fetchRegisteredUsers() {
+            database.ref('users').on('value', snap => {
+                const holderUI = document.getElementById('ui-users-list');
+                holderUI.innerHTML = '';
+                snap.forEach(child => {
+                    const data = child.val();
+                    if (data.uid !== activeUserObj.uid) {
+                        const liRow = document.createElement('li');
+                        liRow.className = 'user-card';
+                        liRow.onclick = () => launchChatBox(data.uid, data.name);
                         
-                        const firstLetter = userData.name.charAt(0).toUpperCase();
-                        li.innerHTML = `
-                            <div class="user-avatar">${firstLetter}</div>
+                        const letter = data.name.charAt(0).toUpperCase();
+                        liRow.innerHTML = `
+                            <div class="avatar">${letter}</div>
                             <div>
-                                <div style="font-weight: bold; font-size: 16px; color: #333;">${userData.name}</div>
-                                <div style="font-size: 12px; color: #777;">${userData.phone}</div>
+                                <div style="font-weight: bold; font-size: 16px; color: #222;">${data.name}</div>
+                                <div style="font-size: 12px; color: #666; margin-top: 2px;">${data.phone}</div>
                             </div>
                         `;
-                        usersListUI.appendChild(li);
+                        holderUI.appendChild(liRow);
                     }
                 });
             });
         }
 
-        function openChatBox(targetUid, targetName) {
-            activeChatUserId = targetUid;
-            document.getElementById('user-screen').style.display = 'none';
+        function launchChatBox(partnerUid, partnerName) {
+            selectedChatId = partnerUid;
+            document.getElementById('user-list-screen').style.display = 'none';
             document.getElementById('chat-screen').style.display = 'flex';
-            document.getElementById('chatting-with-name').innerText = targetName;
+            document.getElementById('chat-user-title').innerText = partnerName;
             
-            const chatRoomId = currentUser.uid < targetUid ? currentUser.uid + "_" + targetUid : targetUid + "_" + currentUser.uid;
+            const combinedRoomId = activeUserObj.uid < partnerUid ? activeUserObj.uid + "_" + partnerUid : partnerUid + "_" + activeUserObj.uid;
             
-            if (chatRef) chatRef.off();
-            document.getElementById('messages-box').innerHTML = '';
-            chatRef = database.ref('messages/' + chatRoomId);
+            if (currentChatDatabaseRef) currentChatDatabaseRef.off();
+            document.getElementById('ui-msg-box').innerHTML = '';
+            currentChatDatabaseRef = database.ref('messages/' + combinedRoomId);
             
-            chatRef.on('child_added', snapshot => {
-                const messageData = snapshot.val();
-                const messagesBox = document.getElementById('messages-box');
-                const msgDiv = document.createElement('div');
+            currentChatDatabaseRef.on('child_added', snap => {
+                const msgObj = snap.val();
+                const uiBox = document.getElementById('ui-msg-box');
+                const element = document.createElement('div');
                 
-                msgDiv.className = (messageData.senderId === currentUser.uid) ? 'msg sent' : 'msg received';
-                msgDiv.innerText = messageData.text;
-                messagesBox.appendChild(msgDiv);
-                messagesBox.scrollTop = messagesBox.scrollHeight;
+                element.className = (msgObj.senderId === activeUserObj.uid) ? 'bubble me' : 'bubble other';
+                element.innerText = msgObj.text;
+                uiBox.appendChild(element);
+                uiBox.scrollTop = uiBox.scrollHeight;
             });
         }
 
-        function sendMessage() {
-            const input = document.getElementById('message-input');
-            const messageText = input.value.trim();
-            if (!messageText || !activeChatUserId) return;
+        function hitSendMessage() {
+            const textNode = document.getElementById('msg-text-input');
+            const mainText = textNode.value.trim();
+            if (!mainText || !selectedChatId) return;
 
-            const chatRoomId = currentUser.uid < activeChatUserId ? currentUser.uid + "_" + activeChatUserId : activeChatUserId + "_" + currentUser.uid;
+            const combinedRoomId = activeUserObj.uid < selectedChatId ? activeUserObj.uid + "_" + selectedChatId : selectedChatId + "_" + activeUserObj.uid;
             
-            database.ref('messages/' + chatRoomId).push({
-                senderId: currentUser.uid,
-                receiverId: activeChatUserId,
-                text: messageText,
+            database.ref('messages/' + combinedRoomId).push({
+                senderId: activeUserObj.uid,
+                receiverId: selectedChatId,
+                text: mainText,
                 timestamp: Date.now()
             });
 
-            input.value = '';
+            textNode.value = '';
         }
 
-        function backToUserList() {
+        function closeChatBox() {
             document.getElementById('chat-screen').style.display = 'none';
-            document.getElementById('user-screen').style.display = 'flex';
-            if (chatRef) chatRef.off();
+            document.getElementById('user-list-screen').style.display = 'flex';
+            if (currentChatDatabaseRef) currentChatDatabaseRef.off();
         }
 
-        function logout() {
+        function userLogout() {
             auth.signOut();
-            localStorage.removeItem('temp_name');
+            localStorage.removeItem('local_name');
         }
     </script>
 </body>
