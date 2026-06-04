@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Life Messenger - Mobile Login Chat</title>
+    <title>Life Messenger - Smooth Login</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -65,8 +65,10 @@
             <div class="input-group">
                 <input type="text" id="phone-number" placeholder="কোডসহ নাম্বার দিন (যেমন: +88017XXXXXXXX)">
             </div>
-            <div id="recaptcha-container"></div>
-            <button class="auth-btn" onclick="sendOTPCode()">ওটিপি (OTP) পাঠান</button>
+            
+            <div id="invisible-recaptcha"></div>
+            
+            <button class="auth-btn" id="send-otp-btn" onclick="sendOTPCode()">ওটিপি (OTP) পাঠান</button>
         </div>
 
         <div id="otp-input-sec" style="width: 100%; display: none; flex-direction: column; align-items: center;">
@@ -102,7 +104,6 @@
     </div>
 
     <script>
-        // ইব্রাহিম ভাই, আপনার পাঠানো একদম সঠিক এবং সম্পূর্ণ কনফিগারেশন এখানে আপডেট করে দেওয়া হয়েছে
         const firebaseConfig = {
             apiKey: "AIzaSyDbpbflrMUXoFjhUC37kYSzO3hoy5G9o58",
             authDomain: "eibrahim-a67a6.firebaseapp.com",
@@ -123,14 +124,16 @@
         let chatRef = null;
         let confirmationResultObj = null;
 
-        // রিক্যাপচা ভেরিফায়ার
+        // ছবি মেলানোর ঝামেলা বন্ধ করতে অদৃশ্য (Invisible) রিক্যাপচা সেটআপ
         window.onload = function() {
-            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                'size': 'invisible'
+            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('invisible-recaptcha', {
+                'size': 'invisible',
+                'callback': function(response) {
+                    // ব্যাকগ্রাউন্ডে ভেরিফাই হলে স্বয়ংক্রিয় কাজ করবে
+                }
             });
         };
 
-        // লগইন অবস্থা পরিবর্তন ট্র্যাক করা
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUser = user;
@@ -153,43 +156,50 @@
             }
         });
 
-        // ওটিপি পাঠানো
         function sendOTPCode() {
             const name = document.getElementById('user-profile-name').value.trim();
             const phone = document.getElementById('phone-number').value.trim();
 
             if (!name || !phone) {
-                alert("দয়া করে নাম এবং দেশের কোডসহ মোবাইল নাম্বার (+88017...) দিন ভাই।");
+                alert("দয়া করে নাম এবং দেশের কোডসহ মোবাইল নাম্বার দিন ভাই।");
                 return;
             }
 
             localStorage.setItem('temp_name', name);
             const appVerifier = window.recaptchaVerifier;
 
+            const btn = document.getElementById('send-otp-btn');
+            btn.innerText = "অপেক্ষা করুন...";
+            btn.disabled = true;
+
             auth.signInWithPhoneNumber(phone, appVerifier)
                 .then((confirmationResult) => {
                     confirmationResultObj = confirmationResult;
                     document.getElementById('phone-input-sec').style.display = 'none';
                     document.getElementById('otp-input-sec').style.display = 'flex';
-                    alert("আপনার মোবাইলে একটি ওটিপি কোড পাঠানো হয়েছে ভাই।");
+                    alert("আপনার মোবাইলে ওটিপি কোড পাঠানো হয়েছে ভাই।");
                 }).catch((error) => {
                     alert("কোড পাঠানো যায়নি: " + error.message);
+                    btn.innerText = "ওটিপি (OTP) পাঠান";
+                    btn.disabled = false;
+                    // কোনো কারণে ফেইল হলে রিক্যাপচা রিসেট করা
+                    window.recaptchaVerifier.render().then(function(widgetId) {
+                        grecaptcha.reset(widgetId);
+                    });
                 });
         }
 
-        // ওটিপি কোড ভেরিফিকেশন
         function verifyOTPCode() {
             const code = document.getElementById('otp-code').value.trim();
             if (!code) { alert("কোডটি সঠিকভাবে লিখুন ভাই।"); return; }
 
             confirmationResultObj.confirm(code).then((result) => {
-                // সফলভাবে লগইন সম্পন্ন
+                // সফল লগইন
             }).catch((error) => {
-                alert("ভুল ওটিপি কোড! আবার চেষ্টা করুন ভাই।");
+                alert("ভুল ওটিপি কোড! আবার চেষ্টা করুন।");
             });
         }
 
-        // ইউজার তালিকা রিয়েলটাইম লোড
         function loadUserList() {
             database.ref('users').on('value', snapshot => {
                 const usersListUI = document.getElementById('users-list-ui');
@@ -215,7 +225,6 @@
             });
         }
 
-        // ব্যক্তিগত চ্যাট বক্স ওপেন
         function openChatBox(targetUid, targetName) {
             activeChatUserId = targetUid;
             document.getElementById('user-screen').style.display = 'none';
@@ -240,7 +249,6 @@
             });
         }
 
-        // মেসেজ পাঠানো
         function sendMessage() {
             const input = document.getElementById('message-input');
             const messageText = input.value.trim();
