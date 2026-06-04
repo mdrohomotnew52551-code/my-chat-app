@@ -106,16 +106,15 @@
     </div>
 
     <script>
-        // আপনার সঠিক ফায়ারবেস কনফিগারেশন
+        // আপনার নতুন 'eibrahim' ডাটাবেজের আসল কনফিগারেশন চাবি
         const firebaseConfig = {
-            apiKey: "AIzaSyDbpbflrMUXoFjhUC37kYSzO3hoy5G9o58",
+            apiKey: "AIzaSyDEgS804mZpGz7F5V_SOfi_ZndjZl8gG1s",
             authDomain: "eibrahim-a67a6.firebaseapp.com",
             databaseURL: "https://eibrahim-a67a6-default-rtdb.firebaseio.com",
             projectId: "eibrahim-a67a6",
             storageBucket: "eibrahim-a67a6.firebasestorage.app",
             messagingSenderId: "519997364197",
-            appId: "1:519997364197:web:b7e522546acfe9207e410c",
-            measurementId: "G-38KBHKB8WT"
+            appId: "1:519997364197:web:b7e522546acfe9207e410c"
         };
         
         firebase.initializeApp(firebaseConfig);
@@ -127,13 +126,10 @@
         let currentChatDatabaseRef = null;
         let firebaseConfirmationHolder = null;
 
-        // অদৃশ্য ভেরিফায়ার সেটআপ (এটি স্ক্রিনে বাসের ছবি বা ক্যাপচা উইন্ডো আনা বন্ধ করবে)
         window.onload = function() {
             window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-invisible-box', {
                 'size': 'invisible',
-                'callback': function(response) {
-                    // অটো ভেরিফাইড
-                }
+                'callback': function(response) {}
             });
         };
 
@@ -185,9 +181,6 @@
                     alert("সমস্যা হয়েছে: " + err.message);
                     sendBtn.innerText = "ওটিপি (OTP) পাঠান";
                     sendBtn.disabled = false;
-                    window.recaptchaVerifier.render().then(function(widgetId) {
-                        grecaptcha.reset(widgetId);
-                    });
                 });
         }
 
@@ -196,7 +189,6 @@
             if (!codeInput) { alert("৬ ডিজিটের কোডটি লিখুন।"); return; }
 
             firebaseConfirmationHolder.confirm(codeInput).then((res) => {
-                // সফল লগইন স্বয়ংক্রিয় হ্যান্ডেল হবে
             }).catch((err) => {
                 alert("ভুল কোড! দয়া করে সঠিক কোডটি দিন ভাই।");
             });
